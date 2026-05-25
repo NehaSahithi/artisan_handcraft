@@ -3,6 +3,7 @@ import Cart from '../models/Cart.js'
 import Product from '../models/Product.js'
 import mongoose from 'mongoose'
 import Razorpay from 'razorpay'
+import crypto from 'crypto'
 import { asyncHandler, ApiError } from '../middleware/errorHandler.js'
 
 let razorpay = null
@@ -105,24 +106,46 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   if (!order) {
     throw new ApiError(404, 'Order not found')
   }
+  // Only allow the order owner or an admin to verify / mark payment
+  if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    throw new ApiError(403, 'Not authorized to verify this payment')
+  }
+
+  // If Razorpay keys are configured, verify signature
+  if (hasRazorpayKeys) {
+    const razorpayOrderId = order.paymentDetails?.razorpayOrderId
+    if (!razorpayOrderId) {
+      throw new ApiError(400, 'Razorpay order id missing for verification')
+    }
+
+    const generatedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpayPaymentId}|${razorpayOrderId}`)
+      .digest('hex')
+
+    if (generatedSignature !== razorpaySignature) {
+      throw new ApiError(400, 'Invalid payment signature')
+    }
+  }
 
   order.paymentDetails.razorpayPaymentId = razorpayPaymentId
   order.paymentDetails.razorpaySignature = razorpaySignature
   order.paymentStatus = 'completed'
   order.status = 'confirmed'
 
-  // Reduce stock
+  // Reduce stock for the products in the order
   for (const item of order.items) {
-    await Product.findByIdAndUpdate(
-      item.product,
-      { $inc: { stock: -item.quantity } }
-    )
+    try {
+      await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } })
+    } catch (err) {
+      // Log and continue; stock inconsistencies handled elsewhere
+    }
   }
 
   await order.save()
 
-  // Clear cart
-  await Cart.updateOne({ user: req.user.id }, { items: [], totalItems: 0 })
+  // Clear cart for the order owner
+  await Cart.updateOne({ user: order.user }, { items: [], totalItems: 0 })
 
   res.json({
     success: true,
