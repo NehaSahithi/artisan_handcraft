@@ -3,7 +3,7 @@ import { asyncHandler, ApiError } from '../middleware/errorHandler.js'
 
 // Register
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, confirmPassword, role, phone } = req.body
+  const { name, email, password, confirmPassword, phone } = req.body
 
   if (!name || !email || !password || !confirmPassword) {
     throw new ApiError(400, 'Please provide all required fields')
@@ -18,12 +18,14 @@ export const register = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Email is already registered')
   }
 
+  // Always create users as 'buyer' by default. Role elevation to artisan/admin
+  // must happen through controlled flows (KYC / admin approval).
   const user = await User.create({
     name,
     email,
     password,
     phone,
-    role: role || 'buyer',
+    role: 'buyer',
   })
 
   const token = user.getSignedJwtToken()
