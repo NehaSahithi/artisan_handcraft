@@ -16,10 +16,10 @@ import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
-import BuyerDashboard from './pages/buyer/BuyerDashboard'
-import SellerDashboard from './pages/seller/SellerDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import NotFoundPage from './pages/NotFoundPage'
+import BuyerDashboard from './pages/buyer/BuyerDashboard';
+import SellerDashboard from './pages/seller/SellerDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
