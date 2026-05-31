@@ -1,242 +1,242 @@
-import { useParams, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useProductStore } from '../store/productStore'
+import apiClient from '../lib/apiClient'
 import { useCartStore } from '../store/cartStore'
-import { useAuthStore } from '../store/authStore'
+import { MapPin, ShieldCheck, ArrowLeft, Plus, Minus, ShoppingBag, Leaf, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { Star, ShieldCheck, Truck, RotateCcw, Minus, Plus, ShoppingBag, ArrowLeft, Info } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "../components/ui/button"
+import { Skeleton } from "../components/ui/skeleton"
+
+// --- REUSABLE HERITAGE ELEMENTS ---
+const LotusMotif = ({ className }) => (
+  <svg viewBox="0 0 100 100" className={className} fill="currentColor">
+    <path d="M50 10 C30 30 10 50 10 70 C10 85 25 95 50 95 C75 95 90 85 90 70 C90 50 70 30 50 10 Z M50 25 C65 45 75 60 75 70 C75 80 65 85 50 85 C35 85 25 80 25 70 C25 60 35 45 50 25 Z"/>
+    <path d="M20 60 C5 70 0 85 10 95 C25 90 35 75 40 60 C25 55 10 60 20 60 Z"/>
+    <path d="M80 60 C95 70 100 85 90 95 C75 90 65 75 60 60 C75 55 90 60 80 60 Z"/>
+  </svg>
+)
+
+const BlockPrintPattern = () => (
+  <svg className="absolute inset-0 w-full h-full opacity-[0.02] pointer-events-none z-0 fixed" xmlns="http://www.w3.org/2000/svg">
+    <defs><pattern id="paisley-detail" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M30 10 C45 10 50 25 45 35 C40 45 25 50 20 40 C15 30 20 15 30 10 Z" fill="currentColor" /><circle cx="30" cy="25" r="4" fill="transparent" stroke="currentColor" strokeWidth="2" /></pattern></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#paisley-detail)" />
+  </svg>
+)
+
+const HeritageDivider = () => (
+  <div className="flex items-center justify-center w-full my-8 opacity-30">
+    <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-primary to-transparent" />
+    <LotusMotif className="w-4 h-4 text-primary mx-4 flex-shrink-0" />
+    <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-primary to-transparent" />
+  </div>
+)
 
 export default function ProductDetailPage() {
   const { id } = useParams()
-  const { getProduct } = useProductStore()
-  const { addToCart } = useCartStore()
-  const { user } = useAuthStore()
+  const navigate = useNavigate()
+  const { getCart } = useCartStore() 
   
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [addingToCart, setAddingToCart] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const [selectedImage, setSelectedImage] = useState(0)
+  const [activeImage, setActiveImage] = useState(0)
 
   useEffect(() => {
-    const loadProduct = async () => {
+    const fetchProductDetails = async () => {
       try {
-        const data = await getProduct(id)
-        setProduct(data.product)
+        const res = await apiClient.get(`/api/products/${id}`)
+        // Handle varying backend response structures gracefully
+        const productData = res.data?.product || res.data
+        setProduct(productData)
       } catch (error) {
-        toast.error('Failed to load product details')
+        console.error("Artifact fetch error:", error)
+        toast.error("The requested artifact could not be found.")
+        navigate('/products')
       } finally {
         setLoading(false)
       }
     }
-    loadProduct()
-  }, [id, getProduct])
+    fetchProductDetails()
+  }, [id, navigate])
 
   const handleAddToCart = async () => {
-    if (!user) return toast.error('Please log in to add items to your cart')
-    if (user.role !== 'buyer') return toast.error('Only buyers can add items to cart')
-    
-    const toastId = toast.loading('Adding to cart...')
+    setAddingToCart(true)
     try {
-      await addToCart(product._id, quantity)
-      toast.success('Added to cart successfully!', { id: toastId })
+      // Safely interact directly with the cart API to prevent store mismatches
+      await apiClient.post('/api/cart', { 
+        productId: product._id, 
+        quantity 
+      })
+      toast.success("Artifact secured in your curation.")
+      if (getCart) getCart() // Refresh global cart badge
     } catch (error) {
-      toast.error(error.message, { id: toastId })
+      toast.error(error.response?.data?.message || "Could not add to curation.")
+    } finally {
+      setLoading(false)
+      setAddingToCart(false)
+    }
+  }
+
+  const updateQuantity = (delta) => {
+    const newQty = quantity + delta
+    if (newQty >= 1 && newQty <= (product?.stock || 10)) {
+      setQuantity(newQty)
     }
   }
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <Skeleton className="aspect-square rounded-2xl w-full" />
-          <div className="space-y-6">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-6 w-1/4" />
-            <Skeleton className="h-32 w-full" />
-            <div className="flex gap-4"><Skeleton className="h-12 w-32" /><Skeleton className="h-12 w-full" /></div>
-          </div>
+      <div className="min-h-screen bg-background pt-24 pb-12 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="font-serif italic text-muted-foreground text-lg">Retrieving from the archives...</p>
         </div>
       </div>
     )
   }
 
-  if (!product) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Artifact Not Found</h2>
-        <p className="text-slate-500 mb-6">This product may have been removed or is no longer available.</p>
-        <Link to="/products"><Button>Return to Collection</Button></Link>
-      </div>
-    )
-  }
+  if (!product) return null
 
-  const effectivePrice = product.discount > 0 ? product.finalPrice : product.price
-  const images = product.images?.length > 0 ? product.images : ['https://placehold.co/800x800?text=Karigar']
+  // Setup fallbacks for visual assets
+  const images = product.images?.length > 0 ? product.images : ['https://placehold.co/800x800?text=Heritage+Artifact']
+  const displayPrice = product.finalPrice || product.price || 0
+  const artisanName = product.artisan?.name || product.artisan?.shopName || 'Master Artisan'
 
   return (
-    <div className="bg-white min-h-screen pb-24">
-      {/* Breadcrumb / Back Navigation */}
-      <div className="border-b border-slate-100 bg-slate-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link to="/products" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Collection
-          </Link>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background relative py-12 md:py-20 font-sans selection:bg-primary/20 selection:text-primary">
+      <BlockPrintPattern />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        <Link to="/products" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors font-serif italic mb-8 md:mb-12">
+          <ArrowLeft className="w-4 h-4" /> Return to Gallery
+        </Link>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
           
-          {/* Left Column: Image Gallery (Sticky) */}
-          <div className="lg:col-span-7">
+          {/* LEFT: Masterpiece Gallery */}
+          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
             <div className="sticky top-24 space-y-6">
-              {/* Main Image */}
-              <div className="aspect-square bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative group">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={selectedImage}
-                    initial={{ opacity: 0, scale: 1.02 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    src={images[selectedImage]}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </AnimatePresence>
-                {product.giCertified && (
-                  <Badge className="absolute top-4 left-4 bg-amber-100 text-amber-800 hover:bg-amber-200 border-none shadow-sm font-semibold">
-                    <ShieldCheck className="w-4 h-4 mr-1.5" /> Authentic GI Tag
-                  </Badge>
-                )}
+              {/* Main Canvas Frame */}
+              <div className="w-full aspect-square bg-secondary/50 rounded-2xl border-2 border-border overflow-hidden relative shadow-md group p-4">
+                <div className="w-full h-full relative overflow-hidden rounded-xl bg-background shadow-inner">
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={activeImage}
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4 }}
+                      src={images[activeImage]}
+                      alt={product.name}
+                      className="w-full h-full object-cover filter sepia-[0.1] hover:sepia-0 hover:scale-110 transition-all duration-700"
+                    />
+                  </AnimatePresence>
+                </div>
               </div>
 
               {/* Thumbnails */}
               {images.length > 1 && (
-                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
                   {images.map((img, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setSelectedImage(idx)}
-                      className={`relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedImage === idx ? 'border-indigo-600 ring-2 ring-indigo-600/20' : 'border-transparent hover:border-slate-300'
+                      onClick={() => setActiveImage(idx)}
+                      className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                        activeImage === idx ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'
                       }`}
                     >
-                      <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={img} alt="" className="w-full h-full object-cover filter sepia-[0.2]" />
                     </button>
                   ))}
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Right Column: Product Details */}
-          <div className="lg:col-span-5 flex flex-col">
-            {/* Header Area */}
-            <div className="mb-8">
-              <p className="text-sm font-semibold text-indigo-600 tracking-wider uppercase mb-3">
-                {product.category}
-              </p>
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-tight mb-4">
+          {/* RIGHT: Curatorial Details */}
+          <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="flex flex-col justify-center">
+            
+            <div className="mb-6">
+              <Link to={`/artisans/${product.artisan?._id}`} className="inline-block text-primary font-serif italic text-lg hover:underline mb-2">
+                By {artisanName}
+              </Link>
+              <h1 className="text-4xl lg:text-5xl font-serif font-bold text-foreground leading-tight">
                 {product.name}
               </h1>
-              
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-slate-900">{product.rating?.average || "New"}</span>
-                  <span className="text-slate-500">({product.rating?.count || 0} reviews)</span>
-                </div>
-                {product.originState && (
-                  <span className="text-slate-500 flex items-center gap-1.5">
-                    <Info className="w-4 h-4" /> Origin: {product.originState}
-                  </span>
-                )}
+            </div>
+
+            <div className="flex items-end gap-4 mb-8">
+              <span className="text-4xl font-serif font-bold text-primary">₹{displayPrice.toLocaleString()}</span>
+              {product.price > displayPrice && (
+                <span className="text-xl font-serif text-muted-foreground line-through mb-1">₹{product.price.toLocaleString()}</span>
+              )}
+            </div>
+
+            <p className="text-lg text-muted-foreground font-serif leading-relaxed mb-8">
+              {product.description}
+            </p>
+
+            {/* Authenticity Badges */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-lg border border-border">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                <span className="text-sm font-serif font-bold">Verified Origin</span>
+              </div>
+              <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-lg border border-border">
+                <Leaf className="w-5 h-5 text-emerald-600" />
+                <span className="text-sm font-serif font-bold">100% Handcrafted</span>
               </div>
             </div>
 
-            {/* Price Area */}
-            <div className="mb-8 pb-8 border-b border-slate-100">
-              <div className="flex items-end gap-3 mb-2">
-                <span className="text-4xl font-bold text-slate-900">₹{effectivePrice}</span>
-                {product.discount > 0 && (
-                  <>
-                    <span className="text-xl text-slate-400 line-through mb-1">₹{product.price}</span>
-                    <Badge variant="destructive" className="mb-1.5 font-bold">-{product.discount}%</Badge>
-                  </>
-                )}
-              </div>
-              <p className="text-sm text-slate-500">Local taxes included (where applicable)</p>
-            </div>
+            <HeritageDivider />
 
-            {/* Description */}
-            <div className="prose prose-slate prose-sm mb-10">
-              <p className="text-slate-600 leading-relaxed text-base">{product.description}</p>
-            </div>
-
-            {/* Buy Box */}
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="font-semibold text-slate-900">Quantity</span>
-                <span className="text-sm text-slate-500">
-                  {product.stock > 0 ? `${product.stock} pieces available` : 'Out of stock'}
+            {/* Acquisition Controls */}
+            <div className="space-y-6 mt-4">
+              <div className="flex items-center justify-between">
+                <span className="font-serif font-bold text-foreground">Edition Size</span>
+                <span className={`text-sm font-bold uppercase tracking-widest ${product.stock > 0 ? 'text-emerald-600' : 'text-destructive'}`}>
+                  {product.stock > 0 ? `${product.stock} Available` : 'Archive Sold Out'}
                 </span>
               </div>
-              
-              <div className="flex gap-4 mb-4">
-                <div className="flex items-center bg-white border border-slate-200 rounded-xl">
-                  <button 
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-3 hover:bg-slate-50 text-slate-600 rounded-l-xl transition-colors disabled:opacity-50"
-                    disabled={quantity <= 1 || product.stock === 0}
+
+              {product.stock > 0 ? (
+                <div className="flex gap-4">
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-between bg-background border-2 border-border rounded-sm px-4 py-2 w-32">
+                    <button onClick={() => updateQuantity(-1)} className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50" disabled={quantity <= 1}>
+                      <Minus className="w-5 h-5" />
+                    </button>
+                    <span className="font-serif font-bold text-lg">{quantity}</span>
+                    <button onClick={() => updateQuantity(1)} className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50" disabled={quantity >= product.stock}>
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Add to Cart Button */}
+                  <Button 
+                    onClick={handleAddToCart}
+                    disabled={addingToCart}
+                    className="flex-1 h-auto text-lg font-serif font-bold rounded-sm border-2 border-primary bg-primary text-primary-foreground hover:bg-transparent hover:text-primary transition-all shadow-md flex items-center justify-center gap-3 py-4"
                   >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="w-12 text-center font-semibold text-slate-900">{product.stock === 0 ? 0 : quantity}</span>
-                  <button 
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="p-3 hover:bg-slate-50 text-slate-600 rounded-r-xl transition-colors disabled:opacity-50"
-                    disabled={quantity >= product.stock || product.stock === 0}
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
+                    {addingToCart ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingBag className="w-5 h-5" />}
+                    Add to Curation
+                  </Button>
                 </div>
-                
-                <Button 
-                  onClick={handleAddToCart}
-                  disabled={product.stock === 0}
-                  className="flex-1 h-auto text-base font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all"
-                >
-                  <ShoppingBag className="w-5 h-5 mr-2" />
-                  {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              ) : (
+                <Button disabled className="w-full h-auto text-lg font-serif font-bold rounded-sm border-2 border-muted bg-muted text-muted-foreground py-4">
+                  Currently Out of Stock
                 </Button>
-              </div>
+              )}
             </div>
 
-            {/* Trust Signals */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-white border border-slate-100">
-                <div className="bg-slate-50 p-2 rounded-lg text-indigo-600"><Truck className="w-5 h-5" /></div>
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900">Direct Shipping</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Ships from artisan within {product.craftingTime || '3-5 days'}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-white border border-slate-100">
-                <div className="bg-slate-50 p-2 rounded-lg text-indigo-600"><RotateCcw className="w-5 h-5" /></div>
-                <div>
-                  <h4 className="text-sm font-semibold text-slate-900">Secure Purchase</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Protected by Karigar guarantee</p>
-                </div>
-              </div>
+            <div className="mt-8 flex items-start gap-3 text-sm text-muted-foreground font-serif italic bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+              <MapPin className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p>This artifact ships directly from the artisan's studio. Please allow 5-7 business days for secure packing and heritage transit.</p>
             </div>
 
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

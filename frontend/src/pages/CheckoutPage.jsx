@@ -66,7 +66,7 @@ export default function CheckoutPage() {
   const tax = Math.round(totalAmount * 0.05)
   const finalAmount = totalAmount + shippingCharge + tax
 
-  const handlePayment = async (e) => {
+const handlePayment = async (e) => {
     e.preventDefault()
     
     if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.pincode || !shippingAddress.phone) {
@@ -76,29 +76,28 @@ export default function CheckoutPage() {
     setLoading(true)
 
     try {
-      // 1. Create Order via your backend store action.
-      // Your backend calculates totals based on the DB cart, so we only need to send the address.
-      const orderResponse = await createOrder({ shippingAddress })
-      
-      // Safety check in case the store returns wrapped data
-      const responseData = orderResponse?.data || orderResponse
+      // FIX: Bypass the store mismatch entirely by posting directly to your backend route via apiClient
+// Post to the orders route (apiClient already prefixes with `/api`)
+const apiResponse = await apiClient.post('/orders', { shippingAddress })      
+      // Handle data nesting from Axios
+      const responseData = apiResponse?.data || apiResponse
       
       if (!responseData?.success) throw new Error(responseData?.message || "Failed to create order")
 
-      // 2. Handle Mock Payment Fallback (from your backend logic)
+      // 2. Handle Mock Payment Fallback (if keys are missing in your backend .env)
       if (responseData.mockPayment) {
         toast.loading("Processing Mock Payment...", { id: 'mock-pay' })
         
         // Tell your backend verify route to mark this as complete
-        await apiClient.post('/orders/verify-payment', { // Verify your actual backend route path here
+        await apiClient.post('/orders/verify', { 
           orderId: responseData.order._id,
           razorpayPaymentId: 'mock_pay_12345',
           razorpaySignature: 'mock_signature_bypass'
         })
         
         toast.success("Mock Acquisition Secured!", { id: 'mock-pay' })
-        if (clearCart) clearCart() 
-        navigate('/buyer/dashboard')
+        if (clearCart) clearCart()
+        navigate('/dashboard')
         return
       }
 
@@ -107,7 +106,7 @@ export default function CheckoutPage() {
       if (!res) throw new Error("Failed to load secure payment gateway. Check your connection.")
 
       const options = {
-        key: responseData.keyId, // Your backend passes the key securely
+        key: responseData.keyId, 
         amount: responseData.razorpayOrder.amount, 
         currency: responseData.razorpayOrder.currency,
         name: "Karigar Artisans",
@@ -117,8 +116,8 @@ export default function CheckoutPage() {
           try {
             toast.loading("Verifying signature...", { id: 'verify' })
             
-            // Send the signature back to your custom verifyPayment controller
-            await apiClient.post('/orders/verify-payment', { // Adjust if your route is just '/orders/verify'
+            // Verify payment (apiClient already prefixes with `/api`)
+await apiClient.post('/orders/verify', {
               orderId: responseData.order._id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature
@@ -126,7 +125,7 @@ export default function CheckoutPage() {
 
             toast.success("Acquisition Secured Successfully!", { id: 'verify' })
             if (clearCart) clearCart()
-            navigate('/buyer/dashboard')
+            navigate('/dashboard')
           } catch (err) {
             toast.error(err.response?.data?.message || "Payment verification failed.", { id: 'verify' })
           }
@@ -148,7 +147,7 @@ export default function CheckoutPage() {
 
     } catch (error) {
       console.error(error)
-      toast.error(error.message || "Failed to initialize secure transaction.")
+      toast.error(error.response?.data?.message || error.message || "Failed to initialize secure transaction.")
     } finally {
       setLoading(false)
     }
