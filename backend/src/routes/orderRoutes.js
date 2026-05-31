@@ -6,6 +6,7 @@ const router = express.Router()
 
 router.post('/', protect, orderController.createOrder)
 router.post('/verify', protect, orderController.verifyPayment)
+router.post('/verify-payment', protect, orderController.verifyPayment)
 router.get('/', protect, orderController.getOrders)
 router.get('/stats', protect, authorize('artisan', 'admin'), orderController.getSalesStats)
 router.get('/:id', protect, orderController.getOrderById)

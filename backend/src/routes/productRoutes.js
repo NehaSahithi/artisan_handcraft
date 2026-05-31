@@ -14,8 +14,8 @@ router.get('/:id', productController.getProductById)
 
 // Protected routes (artisan)
 router.post('/', protect, authorize('artisan'), uploadMultiple, productController.createProduct)
-router.put('/:id', protect, authorize('artisan'), uploadMultiple, productController.updateProduct)
-router.delete('/:id', protect, authorize('artisan'), productController.deleteProduct)
+router.put('/:id', protect, authorize('artisan', 'admin'), uploadMultiple, productController.updateProduct)
+router.delete('/:id', protect, authorize('artisan', 'admin'), productController.deleteProduct)
 
 // Review routes
 router.post('/:productId/reviews', protect, productController.addReview)

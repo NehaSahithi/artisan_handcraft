@@ -2,17 +2,48 @@ import Product from '../models/Product.js'
 import ArtisanProfile from '../models/ArtisanProfile.js'
 import { asyncHandler, ApiError } from '../middleware/errorHandler.js'
 
+const pickAllowedProductFields = (source) => {
+  const allowedFields = [
+    'name',
+    'description',
+    'shortDescription',
+    'category',
+    'subcategory',
+    'price',
+    'discount',
+    'craftStory',
+    'materials',
+    'dimensions',
+    'colors',
+    'care',
+    'artisanNotes',
+    'stock',
+    'maxQuantityPerOrder',
+    'deliveryTime',
+    'international',
+    'tags',
+    'seoKeywords',
+  ]
+
+  return allowedFields.reduce((picked, field) => {
+    if (source[field] !== undefined) {
+      picked[field] = source[field]
+    }
+
+    return picked
+  }, {})
+}
+
 // Get all products
 export const getAllProducts = asyncHandler(async (req, res) => {
   const { category, search, sortBy, page = 1, limit = 20 } = req.query
+  const pageNumber = Math.max(1, Number(page) || 1)
+  const limitNumber = Math.max(1, Number(limit) || 20)
 
   let filter = { isActive: true }
   if (category) filter.category = category
   if (search) {
-    filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-    ]
+    filter.$text = { $search: search }
   }
 
   const sortOptions = {}
@@ -22,11 +53,11 @@ export const getAllProducts = asyncHandler(async (req, res) => {
   else if (sortBy === 'newest') sortOptions.createdAt = -1
   else sortOptions.createdAt = -1
 
-  const skip = (page - 1) * limit
+  const skip = (pageNumber - 1) * limitNumber
   const products = await Product.find(filter)
     .populate('artisan', 'name')
     .sort(sortOptions)
-    .limit(limit)
+    .limit(limitNumber)
     .skip(skip)
 
   const total = await Product.countDocuments(filter)
@@ -34,7 +65,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     products,
-    pagination: { total, pages: Math.ceil(total / limit), currentPage: page },
+    pagination: { total, pages: Math.ceil(total / limitNumber), currentPage: pageNumber },
   })
 })
 
@@ -57,10 +88,17 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new ApiError(403, 'Only artisans can create products')
   }
 
+  let bodyImages = []
+  if (req.body.images) {
+    bodyImages = Array.isArray(req.body.images) ? req.body.images : [req.body.images]
+  } else if (req.body.imageUrl) {
+    bodyImages = [req.body.imageUrl]
+  }
+
   const productData = {
-    ...req.body,
+    ...pickAllowedProductFields(req.body),
     artisan: req.user.id,
-    images: req.files ? req.files.map((f) => f.filename) : [],
+    images: req.files && req.files.length > 0 ? req.files.map((f) => f.filename) : bodyImages,
   }
 
   const product = await Product.create(productData)
@@ -69,24 +107,28 @@ export const createProduct = asyncHandler(async (req, res) => {
 
 // Update product
 export const updateProduct = asyncHandler(async (req, res) => {
-  let product = await Product.findById(req.params.id)
+  const product = await Product.findById(req.params.id)
 
   if (!product) {
     throw new ApiError(404, 'Product not found')
   }
 
-  if (product.artisan.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (!req.user._id.equals(product.artisan) && req.user.role !== 'admin') {
     throw new ApiError(403, 'Not authorized to update this product')
   }
 
+  const allowedUpdates = pickAllowedProductFields(req.body)
+
   if (req.files && req.files.length > 0) {
-    req.body.images = req.files.map((f) => f.filename)
+    allowedUpdates.images = req.files.map((f) => f.filename)
+  } else if (req.body.images) {
+    allowedUpdates.images = Array.isArray(req.body.images) ? req.body.images : [req.body.images]
+  } else if (req.body.imageUrl) {
+    allowedUpdates.images = [req.body.imageUrl]
   }
 
-  product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  })
+  product.set(allowedUpdates)
+  await product.save()
 
   res.json({ success: true, message: 'Product updated successfully', product })
 })
@@ -99,7 +141,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Product not found')
   }
 
-  if (product.artisan.toString() !== req.user.id && req.user.role !== 'admin') {
+  if (!req.user._id.equals(product.artisan) && req.user.role !== 'admin') {
     throw new ApiError(403, 'Not authorized to delete this product')
   }
 
@@ -119,25 +161,38 @@ export const getProductsByArtisan = asyncHandler(async (req, res) => {
 export const addReview = asyncHandler(async (req, res) => {
   const { productId } = req.params
   const { rating, comment } = req.body
+  const ratingValue = Number(rating)
 
-  const product = await Product.findById(productId)
+  if (!Number.isFinite(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+    throw new ApiError(400, 'Rating must be between 1 and 5')
+  }
+
+  const product = await Product.findByIdAndUpdate(
+    productId,
+    {
+      $push: {
+        reviews: {
+          user: req.user._id,
+          rating: ratingValue,
+          comment,
+          createdAt: new Date(),
+        },
+      },
+      $inc: {
+        'rating.count': 1,
+        'rating.total': ratingValue,
+      },
+    },
+    { new: true }
+  )
+
   if (!product) {
     throw new ApiError(404, 'Product not found')
   }
 
-  product.reviews.push({
-    user: req.user.id,
-    rating,
-    comment,
-  })
-
-  // Update rating average
-  const avgRating =
-    product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-  product.rating.average = Math.round(avgRating * 10) / 10
-  product.rating.count = product.reviews.length
-
+  product.rating.average = Math.round((product.rating.total / product.rating.count) * 10) / 10
   await product.save()
+
   res.json({ success: true, message: 'Review added successfully', product })
 })
 

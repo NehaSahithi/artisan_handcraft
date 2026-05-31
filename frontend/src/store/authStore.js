@@ -15,7 +15,7 @@ export const useAuthStore = create((set) => ({
       localStorage.setItem('karigar_user', JSON.stringify(user))
       localStorage.setItem('karigar_token', token)
       set({ user, token, loading: false })
-      return response.data
+      return user
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Registration failed'
       set({ error: errorMsg, loading: false })
@@ -31,7 +31,7 @@ export const useAuthStore = create((set) => ({
       localStorage.setItem('karigar_user', JSON.stringify(user))
       localStorage.setItem('karigar_token', token)
       set({ user, token, loading: false })
-      return response.data
+      return user
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Login failed'
       set({ error: errorMsg, loading: false })

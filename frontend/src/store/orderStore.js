@@ -20,7 +20,7 @@ export const useOrderStore = create((set) => ({
 
   verifyPayment: async (data) => {
     try {
-      const response = await API.post('/orders/verify', data)
+      const response = await API.post('/orders/verify-payment', data)
       return response.data
     } catch (error) {
       set({ error: error.response?.data?.message })

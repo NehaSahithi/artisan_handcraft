@@ -89,7 +89,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
         toast.loading("Processing Mock Payment...", { id: 'mock-pay' })
         
         // Tell your backend verify route to mark this as complete
-        await apiClient.post('/orders/verify', { 
+        await apiClient.post('/orders/verify-payment', { 
           orderId: responseData.order._id,
           razorpayPaymentId: 'mock_pay_12345',
           razorpaySignature: 'mock_signature_bypass'
@@ -97,7 +97,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
         
         toast.success("Mock Acquisition Secured!", { id: 'mock-pay' })
         if (clearCart) clearCart()
-        navigate('/dashboard')
+        navigate('/buyer/dashboard')
         return
       }
 
@@ -117,7 +117,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
             toast.loading("Verifying signature...", { id: 'verify' })
             
             // Verify payment (apiClient already prefixes with `/api`)
-await apiClient.post('/orders/verify', {
+            await apiClient.post('/orders/verify-payment', {
               orderId: responseData.order._id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature
@@ -125,7 +125,7 @@ await apiClient.post('/orders/verify', {
 
             toast.success("Acquisition Secured Successfully!", { id: 'verify' })
             if (clearCart) clearCart()
-            navigate('/dashboard')
+            navigate('/buyer/dashboard')
           } catch (err) {
             toast.error(err.response?.data?.message || "Payment verification failed.", { id: 'verify' })
           }

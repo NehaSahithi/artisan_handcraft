@@ -44,13 +44,13 @@ export default function AdminDashboard() {
     setLoading(true)
     try {
       // Fetch platform overview statistics
-      const metricsRes = await apiClient.get('/api/admin/metrics')
+      const metricsRes = await apiClient.get('/admin/metrics')
       if (metricsRes.data?.success) {
         setMetrics(metricsRes.data.metrics)
       }
 
       // Fetch unverified artisans awaiting approval
-      const artisansRes = await apiClient.get('/api/admin/pending-artisans')
+      const artisansRes = await apiClient.get('/admin/pending-artisans')
       if (artisansRes.data?.success) {
         setPendingArtisans(artisansRes.data.artisans)
       } else if (Array.isArray(artisansRes.data)) {
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
   const handleVerification = async (artisanId, approve) => {
     setActionLoading(artisanId)
     try {
-      const endpoint = `/api/admin/verify-artisan/${artisanId}`
+      const endpoint = `/admin/verify-artisan/${artisanId}`
       const response = await apiClient.post(endpoint, { status: approve ? 'approved' : 'rejected' })
 
       if (response.data?.success) {

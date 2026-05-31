@@ -20,6 +20,8 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import NotFoundPage from './pages/NotFoundPage'
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
 import SellerDashboard from './pages/seller/SellerDashboard';
+import AddProductPage from './pages/seller/AddProductPage';
+import SellerSettingsPage from './pages/seller/SellerSettingsPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -58,9 +60,12 @@ function App() {
             <Route path="/cart" element={<ProtectedRoute requiredRole="buyer"><CartPage /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute requiredRole="buyer"><CheckoutPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute requiredRole="buyer"><BuyerDashboard /></ProtectedRoute>} />
+            <Route path="/buyer/dashboard" element={<ProtectedRoute requiredRole="buyer"><BuyerDashboard /></ProtectedRoute>} />
 
             {/* Seller Routes */}
             <Route path="/seller/dashboard" element={<ProtectedRoute requiredRole="artisan"><SellerDashboard /></ProtectedRoute>} />
+            <Route path="/seller/products/new" element={<ProtectedRoute requiredRole="artisan"><AddProductPage /></ProtectedRoute>} />
+            <Route path="/seller/settings" element={<ProtectedRoute requiredRole="artisan"><SellerSettingsPage /></ProtectedRoute>} />
 
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />

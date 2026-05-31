@@ -42,7 +42,10 @@ export const getArtisanById = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Artisan not found')
   }
 
-  const products = await Product.find({ artisan: artisan.user._id, isActive: true }).limit(12)
+  const artisanUserId = artisan.user?._id || artisan.user
+  const products = artisanUserId
+    ? await Product.find({ artisan: artisanUserId, isActive: true }).limit(12)
+    : []
 
   res.json({
     success: true,

@@ -65,4 +65,14 @@ export const useArtisanStore = create((set) => ({
       throw error
     }
   },
+
+  getMyProfile: async () => {
+    try {
+      const response = await API.get('/artisans/profile/me')
+      return response.data
+    } catch (error) {
+      set({ error: error.response?.data?.message })
+      throw error
+    }
+  },
 }))

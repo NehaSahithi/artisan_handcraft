@@ -83,6 +83,7 @@ const ProductSchema = new mongoose.Schema(
     rating: {
       average: { type: Number, default: 0, min: 0, max: 5 },
       count: { type: Number, default: 0 },
+      total: { type: Number, default: 0 },
     },
     reviews: [
       {
@@ -107,13 +108,13 @@ const ProductSchema = new mongoose.Schema(
   }
 )
 
-ProductSchema.pre('save', function (next) {
-  this.finalPrice = this.price - (this.price * this.discount) / 100
+ProductSchema.pre('validate', function (next) {
+  if (this.price !== undefined) {
+    this.finalPrice = this.price - (this.price * (this.discount || 0)) / 100
+  }
   next()
 })
 
-ProductSchema.virtual('discountedPrice').get(function () {
-  return this.price - (this.price * this.discount) / 100
-})
+ProductSchema.index({ name: 'text', description: 'text' })
 
 export default mongoose.model('Product', ProductSchema)

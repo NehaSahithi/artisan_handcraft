@@ -30,6 +30,7 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'buyer' // Default role
   })
 
@@ -37,15 +38,19 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
       return toast.error("Please complete all fields.")
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      return toast.error("Passwords do not match.")
     }
 
     setLoading(true)
     try {
-      await register(formData)
+      const registeredUser = await register(formData)
       toast.success(formData.role === 'artisan' ? "Welcome, Master Artisan." : "Welcome to the Curation.")
-      navigate(formData.role === 'artisan' ? '/seller/dashboard' : '/buyer/dashboard')
+      navigate((registeredUser?.role || formData.role) === 'artisan' ? '/seller/dashboard' : '/products')
     } catch (error) {
       toast.error(error.message || "Registration failed")
     } finally {
@@ -138,6 +143,12 @@ export default function RegisterPage() {
               <div className="group relative">
                 <Lock className="absolute left-0 top-3 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" required minLength="6"
+                  className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all" />
+              </div>
+
+              <div className="group relative">
+                <Lock className="absolute left-0 top-3 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm Password" required minLength="6"
                   className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all" />
               </div>
             </div>

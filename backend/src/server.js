@@ -4,10 +4,12 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import 'express-async-errors'
 import connectDB from './config/database.js'
+import { validateEnv } from './config/env.js'
 import routes from './routes/index.js'
 import { errorHandler } from './middleware/errorHandler.js'
 
 dotenv.config()
+validateEnv()
 
 const app = express()
 
@@ -48,7 +50,17 @@ app.use(errorHandler)
 
 // Server
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`)
   console.log(`📧 CORS enabled for: ${process.env.FRONTEND_URL}`)
+})
+
+process.on('unhandledRejection', (err) => {
+  console.error(`Unhandled Rejection: ${err.message}`)
+  server.close(() => process.exit(1))
+})
+
+process.on('uncaughtException', (err) => {
+  console.error(`Uncaught Exception: ${err.message}`)
+  server.close(() => process.exit(1))
 })

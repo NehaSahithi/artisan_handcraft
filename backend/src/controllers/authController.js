@@ -3,7 +3,7 @@ import { asyncHandler, ApiError } from '../middleware/errorHandler.js'
 
 // Register
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, confirmPassword, phone } = req.body
+  const { name, email, password, confirmPassword, phone, role } = req.body
 
   if (!name || !email || !password || !confirmPassword) {
     throw new ApiError(400, 'Please provide all required fields')
@@ -18,14 +18,15 @@ export const register = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Email is already registered')
   }
 
-  // Always create users as 'buyer' by default. Role elevation to artisan/admin
-  // must happen through controlled flows (KYC / admin approval).
+  const allowedRoles = ['buyer', 'artisan']
+  const userRole = allowedRoles.includes(role) ? role : 'buyer'
+
   const user = await User.create({
     name,
     email,
     password,
     phone,
-    role: 'buyer',
+    role: userRole,
   })
 
   const token = user.getSignedJwtToken()
@@ -39,7 +40,7 @@ export const register = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'User registered successfully',
+    message: 'Registration successful. Please verify your email before logging in.',
     user: { id: user._id, name: user.name, email: user.email, role: user.role },
     token,
   })
@@ -108,7 +109,18 @@ export const updateProfile = asyncHandler(async (req, res) => {
 // Add address
 export const addAddress = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id)
-  user.addresses.push(req.body)
+  const { label, fullName, phone, street, city, state, pincode, isDefault } = req.body
+
+  user.addresses.push({
+    label,
+    fullName,
+    phone,
+    street,
+    city,
+    state,
+    pincode,
+    isDefault,
+  })
   await user.save()
 
   res.json({ success: true, message: 'Address added successfully', addresses: user.addresses })
@@ -118,13 +130,23 @@ export const addAddress = asyncHandler(async (req, res) => {
 export const updateAddress = asyncHandler(async (req, res) => {
   const { addressId } = req.params
   const user = await User.findById(req.user.id)
+  const { label, fullName, phone, street, city, state, pincode, isDefault } = req.body
 
   const address = user.addresses.id(addressId)
   if (!address) {
     throw new ApiError(404, 'Address not found')
   }
 
-  Object.assign(address, req.body)
+  Object.assign(address, {
+    label,
+    fullName,
+    phone,
+    street,
+    city,
+    state,
+    pincode,
+    isDefault,
+  })
   await user.save()
 
   res.json({ success: true, message: 'Address updated successfully', addresses: user.addresses })

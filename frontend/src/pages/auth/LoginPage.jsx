@@ -48,7 +48,7 @@ export default function LoginPage() {
       
       // Route based on role
       if (user.role === 'admin') navigate('/admin/dashboard')
-      else if (user.role === 'artisan') navigate('/artisan/dashboard')
+      else if (user.role === 'artisan') navigate('/seller/dashboard')
       else navigate('/')
       
     } catch (error) {

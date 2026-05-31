@@ -24,7 +24,7 @@ const LotusMotif = ({ className }) => (
 )
 
 const BlockPrintPattern = () => (
-  <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none z-0 fixed" xmlns="http://www.w3.org/2000/svg">
+  <svg className="inset-0 w-full h-full opacity-[0.03] pointer-events-none z-0" style={{ position: 'absolute' }} xmlns="http://www.w3.org/2000/svg">
     <defs><pattern id="paisley-artisan" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M30 10 C45 10 50 25 45 35 C40 45 25 50 20 40 C15 30 20 15 30 10 Z" fill="currentColor" /><circle cx="30" cy="25" r="4" fill="transparent" stroke="currentColor" strokeWidth="2" /></pattern></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#paisley-artisan)" />
   </svg>
 )
@@ -61,11 +61,14 @@ export default function ArtisanDetailPage() {
         // Parallel fetching to speed up page load
         // Note: Using standard public routes. Adjust if your backend uses different paths.
         const [artisanRes, productsRes] = await Promise.all([
-          apiClient.get(`/api/users/${id}`).catch(() => apiClient.get(`/api/artisans/${id}`)),
-          apiClient.get(`/api/products?artisan=${id}`)
+          apiClient.get(`/artisans/${id}`),
+          apiClient.get(`/products/artisan/${id}`)
         ])
 
-        const artisanData = artisanRes.data?.user || artisanRes.data?.artisan || artisanRes.data
+        const artisanProfile = artisanRes.data?.artisan || artisanRes.data
+        const artisanData = artisanProfile?.user
+          ? { ...artisanProfile, ...artisanProfile.user }
+          : artisanProfile
         const productsData = productsRes.data?.products || productsRes.data || []
 
         setArtisan(artisanData)

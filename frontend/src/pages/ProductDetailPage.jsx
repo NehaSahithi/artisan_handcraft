@@ -18,7 +18,7 @@ const LotusMotif = ({ className }) => (
 )
 
 const BlockPrintPattern = () => (
-  <svg className="absolute inset-0 w-full h-full opacity-[0.02] pointer-events-none z-0 fixed" xmlns="http://www.w3.org/2000/svg">
+  <svg className="fixed inset-0 w-full h-full opacity-[0.02] pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
     <defs><pattern id="paisley-detail" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M30 10 C45 10 50 25 45 35 C40 45 25 50 20 40 C15 30 20 15 30 10 Z" fill="currentColor" /><circle cx="30" cy="25" r="4" fill="transparent" stroke="currentColor" strokeWidth="2" /></pattern></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#paisley-detail)" />
   </svg>
 )
@@ -45,7 +45,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
-        const res = await apiClient.get(`/api/products/${id}`)
+        const res = await apiClient.get(`/products/${id}`)
         // Handle varying backend response structures gracefully
         const productData = res.data?.product || res.data
         setProduct(productData)
@@ -64,7 +64,7 @@ export default function ProductDetailPage() {
     setAddingToCart(true)
     try {
       // Safely interact directly with the cart API to prevent store mismatches
-      await apiClient.post('/api/cart', { 
+      await apiClient.post('/cart', { 
         productId: product._id, 
         quantity 
       })
