@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
 import { useOrderStore } from '../../store/orderStore'
 import { Package, MapPin, Calendar, ArrowRight, ShieldCheck, Clock } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "../../components/ui/button"
+import { Skeleton } from "../../components/ui/skeleton"
 
 // --- REUSABLE HERITAGE ELEMENTS ---
 const LotusMotif = ({ className }) => (
@@ -32,13 +32,12 @@ const HeritageDivider = () => (
 
 export default function BuyerDashboard() {
   const { user } = useAuthStore()
-  const { orders, getOrders, loading } = useOrderStore()
+  const { orders = [], getMyOrders, loading } = useOrderStore() // Fallback to empty array to protect .map()
 
   useEffect(() => {
-    getOrders()
-  }, [getOrders])
+    getMyOrders()
+  }, [getMyOrders])
 
-  // Helper to style status badges elegantly
   const getStatusDisplay = (status) => {
     const states = {
       pending: { color: 'text-amber-700 bg-amber-50 border-amber-200', text: 'Awaiting Fulfillment' },
@@ -56,11 +55,8 @@ export default function BuyerDashboard() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* HEADER: Personal Welcome */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
+        {/* HEADER */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center mb-16">
           <div className="inline-flex items-center gap-2 mb-4 text-primary">
             <LotusMotif className="w-5 h-5" />
             <span className="text-sm font-semibold tracking-widest uppercase">Private Archive</span>
@@ -74,12 +70,8 @@ export default function BuyerDashboard() {
           </p>
         </motion.div>
 
-        {/* MAIN CONTENT: Order History */}
+        {/* MAIN CONTENT */}
         <div className="bg-secondary/40 backdrop-blur-sm border border-border rounded-2xl p-6 md:p-12 shadow-sm relative overflow-hidden">
-          {/* Decorative Corner Architecture */}
-          <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-primary/20 rounded-tl-2xl opacity-50" />
-          <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-primary/20 rounded-br-2xl opacity-50" />
-
           <div className="flex items-center gap-3 mb-8">
             <Package className="w-6 h-6 text-primary" />
             <h2 className="text-3xl font-serif font-bold text-foreground">Your Acquisitions</h2>
@@ -91,11 +83,8 @@ export default function BuyerDashboard() {
                 <Skeleton key={i} className="h-48 w-full bg-background/50 border border-border rounded-xl" />
               ))}
             </div>
-          ) : orders?.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-              className="text-center py-16 bg-background rounded-xl border border-border shadow-inner"
-            >
+          ) : !orders || orders.length === 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 bg-background rounded-xl border border-border shadow-inner">
               <div className="w-20 h-20 mx-auto bg-secondary rounded-full flex items-center justify-center mb-6">
                 <LotusMotif className="w-8 h-8 text-primary opacity-40" />
               </div>
@@ -110,17 +99,10 @@ export default function BuyerDashboard() {
           ) : (
             <div className="space-y-8">
               <AnimatePresence>
-                {orders.map((order, idx) => {
+                {orders?.map((order, idx) => {
                   const statusInfo = getStatusDisplay(order.status)
                   return (
-                    <motion.div
-                      key={order._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:border-primary/40 transition-colors"
-                    >
-                      {/* Order Header (Parchment Ticket Style) */}
+                    <motion.div key={order._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} className="bg-background border border-border rounded-xl overflow-hidden shadow-sm hover:border-primary/40 transition-colors">
                       <div className="bg-secondary/50 px-6 py-4 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex flex-wrap gap-x-8 gap-y-2">
                           <div>
@@ -136,34 +118,26 @@ export default function BuyerDashboard() {
                           </div>
                           <div>
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Archive ID</p>
-                            <p className="font-mono text-sm text-muted-foreground">{order._id.slice(-8).toUpperCase()}</p>
+                            <p className="font-mono text-sm text-muted-foreground">{order._id?.slice(-8).toUpperCase()}</p>
                           </div>
                         </div>
-                        
                         <div className={`px-4 py-1.5 rounded-sm border ${statusInfo.color} font-serif font-bold text-sm text-center min-w-[140px]`}>
                           {statusInfo.text}
                         </div>
                       </div>
 
-                      {/* Order Items */}
                       <div className="p-6">
                         <div className="space-y-6">
-                          {order.items.map((item, index) => (
+                          {order.items?.map((item, index) => (
                             <div key={index} className="flex gap-6 items-center">
                               <div className="w-24 h-24 flex-shrink-0 border-2 border-secondary overflow-hidden rounded-md shadow-inner">
-                                <img 
-                                  src={item.product?.images?.[0] || 'https://placehold.co/100x100?text=Art'} 
-                                  alt={item.product?.name} 
-                                  className="w-full h-full object-cover filter sepia-[0.2]"
-                                />
+                                <img src={item.product?.images?.[0] || 'https://placehold.co/100x100?text=Art'} alt="" className="w-full h-full object-cover filter sepia-[0.2]" />
                               </div>
                               <div className="flex-grow">
                                 <Link to={`/products/${item.product?._id}`} className="text-xl font-serif font-bold text-foreground hover:text-primary transition-colors">
                                   {item.product?.name || 'Untitled Masterpiece'}
                                 </Link>
-                                <p className="text-muted-foreground font-serif italic text-sm mt-1">
-                                  by {item.artisan?.name || 'Master Artisan'}
-                                </p>
+                                <p className="text-muted-foreground font-serif italic text-sm mt-1">by {item.artisan?.name || 'Master Artisan'}</p>
                                 <div className="mt-2 text-sm text-foreground">
                                   <span className="font-bold">Qty:</span> {item.quantity} &nbsp;•&nbsp; <span className="font-bold">₹{item.price?.toLocaleString()}</span>
                                 </div>
@@ -171,10 +145,7 @@ export default function BuyerDashboard() {
                             </div>
                           ))}
                         </div>
-
                         <HeritageDivider />
-
-                        {/* Shipping Info */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm text-muted-foreground font-serif">
                           <div className="flex items-start gap-2">
                             <MapPin className="w-4 h-4 text-primary mt-0.5" />
@@ -183,16 +154,9 @@ export default function BuyerDashboard() {
                               {order.shippingAddress?.street}, {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.pincode}
                             </div>
                           </div>
-                          
-                          {order.status === 'delivered' ? (
-                            <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-                              <ShieldCheck className="w-4 h-4" /> Safely in your possession
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100">
-                              <Clock className="w-4 h-4" /> Preservation in progress
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100">
+                            <Clock className="w-4 h-4" /> Secure Passage Confirmed
+                          </div>
                         </div>
                       </div>
                     </motion.div>
