@@ -1,96 +1,125 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
+import crypto from 'node:crypto';
+import { ORDER_STATUSES, PAYMENT_STATUSES } from '../constants/categories.js';
 
 const OrderSchema = new mongoose.Schema(
   {
     orderNumber: {
       type: String,
       unique: true,
-      default: () => 'ORD-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      index: true
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'An order must belong to a buyer'],
+      index: true
     },
     items: [
       {
         product: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Product',
-          required: true,
+          required: [true, 'Order item must be linked to a product']
         },
         artisan: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'User',
-          required: true,
+          required: [true, 'Order item must be linked to an artisan'],
+          index: true
         },
-        quantity: { type: Number, required: true, min: 1 },
-        price: { type: Number, required: true },
+        name: {
+          type: String,
+          required: [true, 'Snapshot of product name is required']
+        },
+        image: {
+          type: String,
+          required: [true, 'Snapshot of product image is required']
+        },
+        quantity: {
+          type: Number,
+          required: [true, 'Order item quantity is required'],
+          min: [1, 'Quantity must be at least 1']
+        },
+        price: {
+          type: Number,
+          required: [true, 'Order item price is required'],
+          min: [0, 'Price must be positive']
+        },
         status: {
           type: String,
-          enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
-          default: 'pending',
+          enum: Object.values(ORDER_STATUSES),
+          default: ORDER_STATUSES.PENDING
         },
-        trackingNumber: { type: String },
-        estimatedDelivery: { type: Date },
-        actualDelivery: { type: Date },
-        itemNotes: { type: String },
-        returnRequested: { type: Boolean, default: false },
-        returnReason: { type: String },
-        refundStatus: {
+        trackingNumber: {
           type: String,
-          enum: ['none', 'pending', 'approved', 'rejected', 'completed'],
-          default: 'none',
-        },
-      },
+          default: ''
+        }
+      }
     ],
     shippingAddress: {
-      fullName: String,
-      phone: String,
-      email: String,
-      street: String,
-      city: String,
-      state: String,
-      pincode: String,
-      country: { type: String, default: 'India' },
+      fullName: { type: String, required: [true, 'Recipient full name is required'] },
+      phone: { type: String, required: [true, 'Recipient phone number is required'] },
+      street: { type: String, required: [true, 'Street address is required'] },
+      city: { type: String, required: [true, 'City is required'] },
+      state: { type: String, required: [true, 'State is required'] },
+      pincode: { 
+        type: String, 
+        required: [true, 'PIN code is required'],
+        match: [/^\d{6}$/, 'Pincode must be exactly 6 digits']
+      }
     },
-    paymentMethod: {
-      type: String,
-      enum: ['razorpay', 'upi', 'netbanking', 'wallet'],
+    payment: {
+      razorpayOrderId: { type: String },
+      razorpayPaymentId: { type: String },
+      razorpaySignature: { type: String },
+      method: { type: String, default: 'razorpay' },
+      status: {
+        type: String,
+        enum: Object.values(PAYMENT_STATUSES),
+        default: PAYMENT_STATUSES.PENDING
+      }
+    },
+    subtotal: {
+      type: Number,
       required: true,
+      min: 0
     },
-    paymentStatus: {
-      type: String,
-      enum: ['pending', 'completed', 'failed', 'refunded'],
-      default: 'pending',
+    shippingCharge: {
+      type: Number,
+      default: 0
     },
-    paymentDetails: {
-      razorpayOrderId: String,
-      razorpayPaymentId: String,
-      razorpaySignature: String,
-      transactionId: String,
+    tax: {
+      type: Number,
+      default: 0
     },
-    subtotal: { type: Number, required: true },
-    shippingCost: { type: Number, default: 0 },
-    tax: { type: Number, default: 0 },
-    discount: { type: Number, default: 0 },
-    totalAmount: { type: Number, required: true },
-    specialInstructions: { type: String },
-    notes: { type: String },
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0
+    },
     status: {
       type: String,
-      enum: ['confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
-      default: 'confirmed',
+      enum: Object.values(ORDER_STATUSES),
+      default: ORDER_STATUSES.PENDING,
+      index: true
     },
-    cancellationReason: String,
-    cancelledAt: Date,
-    completedAt: Date,
+    notes: {
+      type: String,
+      trim: true
+    }
   },
   {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    timestamps: true
   }
-)
+);
 
-export default mongoose.model('Order', OrderSchema)
+// Pre-save hook: Generate unique cryptographically secure orderNumber prefixing ORD-
+OrderSchema.pre('save', function (next) {
+  if (!this.orderNumber) {
+    this.orderNumber = 'ORD-' + crypto.randomUUID().split('-')[0].toUpperCase();
+  }
+  next();
+});
+
+export default mongoose.model('Order', OrderSchema);

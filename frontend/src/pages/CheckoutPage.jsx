@@ -91,6 +91,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
         // Tell your backend verify route to mark this as complete
         await apiClient.post('/orders/verify-payment', { 
           orderId: responseData.order._id,
+          razorpayOrderId: responseData.razorpayOrder?.id || 'mock_order_12345',
           razorpayPaymentId: 'mock_pay_12345',
           razorpaySignature: 'mock_signature_bypass'
         })
@@ -106,7 +107,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
       if (!res) throw new Error("Failed to load secure payment gateway. Check your connection.")
 
       const options = {
-        key: responseData.keyId, 
+        key: responseData.key || responseData.keyId, 
         amount: responseData.razorpayOrder.amount, 
         currency: responseData.razorpayOrder.currency,
         name: "Karigar Artisans",
@@ -119,8 +120,13 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
             // Verify payment (apiClient already prefixes with `/api`)
             await apiClient.post('/orders/verify-payment', {
               orderId: responseData.order._id,
+              razorpayOrderId: response.razorpay_order_id || responseData.razorpayOrder?.id,
               razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature
+              razorpaySignature: response.razorpay_signature,
+              // Send native keys as secondary fallback
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
             })
 
             toast.success("Acquisition Secured Successfully!", { id: 'verify' })
@@ -241,7 +247,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
                   <div key={idx} className="flex justify-between items-center text-sm font-serif border-b border-border/50 pb-2">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 border border-border overflow-hidden rounded-sm">
-                        <img src={item.product?.images?.[0] || 'https://placehold.co/100'} alt="" className="w-full h-full object-cover filter sepia-[0.2]" />
+                        <img src={item.product?.images?.[0]?.url || 'https://placehold.co/100'} alt="" className="w-full h-full object-cover filter sepia-[0.2]" />
                       </div>
                       <span className="text-foreground line-clamp-1 max-w-[150px]">{item.product?.name}</span>
                       <span className="text-muted-foreground">x{item.quantity}</span>

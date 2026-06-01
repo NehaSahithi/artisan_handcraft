@@ -71,54 +71,7 @@ const BlockPrintPattern = () => (
   </svg>
 )
 
-// --- ADVANCED CUSTOM CURSOR (Bindi & Brass Style) ---
-const CustomCursor = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isHovering, setIsHovering] = useState(false)
 
-  useEffect(() => {
-    const updateMousePosition = (e) => setMousePosition({ x: e.clientX, y: e.clientY })
-    const handleMouseOver = (e) => {
-      // Check if hovering over a link or button
-      if (e.target.closest('a') || e.target.closest('button')) setIsHovering(true)
-      else setIsHovering(false)
-    }
-    
-    window.addEventListener('mousemove', updateMousePosition)
-    window.addEventListener('mouseover', handleMouseOver)
-    return () => {
-      window.removeEventListener('mousemove', updateMousePosition)
-      window.removeEventListener('mouseover', handleMouseOver)
-    }
-  }, [])
-
-  return (
-    <>
-      {/* 1. The Core Dot (Bindi - Terracotta Red) - Moves instantly */}
-      <motion.div 
-        className="fixed top-0 left-0 w-2 h-2 bg-[#8C3A3A] rounded-full pointer-events-none z-[100] shadow-sm"
-        animate={{ x: mousePosition.x - 4, y: mousePosition.y - 4 }}
-        transition={{ type: "tween", ease: "linear", duration: 0 }} 
-      />
-      
-      {/* 2. The Trailing Ring (Temple Brass) - Moves smoothly with physics */}
-      <motion.div 
-        className="fixed top-0 left-0 w-8 h-8 border-[1.5px] border-[#B8860B] rounded-full pointer-events-none z-[99] flex items-center justify-center backdrop-blur-[1px]"
-        animate={{ 
-          x: mousePosition.x - 16, 
-          y: mousePosition.y - 16, 
-          scale: isHovering ? 1.8 : 1,
-          backgroundColor: isHovering ? 'rgba(184, 134, 11, 0.1)' : 'transparent',
-          borderColor: isHovering ? 'rgba(184, 134, 11, 0.4)' : 'rgba(184, 134, 11, 0.8)'
-        }}
-        transition={{ type: "spring", stiffness: 200, damping: 20, mass: 0.2 }}
-      >
-        {/* Lotus only appears when hovering over a button/link */}
-        {isHovering && <LotusMotif className="w-4 h-4 text-[#B8860B] animate-spin-slow opacity-90" />}
-      </motion.div>
-    </>
-  )
-}
 // --- HORIZONTAL SCROLL GALLERY COMPONENT ---
 const HorizontalGallery = ({ products, loading }) => {
   const targetRef = useRef(null)
@@ -171,20 +124,16 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Hide default cursor for the whole app when on homepage
-    document.body.style.cursor = 'none'
     const loadData = async () => {
       try {
         await Promise.all([getProducts({ limit: 10, isFeatured: true }), getArtisans({ limit: 3 })])
       } catch (error) { console.error(error) } finally { setLoading(false) }
     }
     loadData()
-    return () => { document.body.style.cursor = 'auto' }
   }, [])
 
   return (
     <div className="bg-background min-h-screen font-sans selection:bg-primary/20 selection:text-primary">
-      <CustomCursor />
       <BlockPrintPattern />
       
       {/* 1. TRADITIONAL INDIAN HERO SECTION */}

@@ -1,144 +1,240 @@
-import Cart from '../models/Cart.js'
-import Product from '../models/Product.js'
-import { asyncHandler, ApiError } from '../middleware/errorHandler.js'
+import Cart from '../models/Cart.js';
+import Product from '../models/Product.js';
+import { ApiError } from '../middleware/errorHandler.js';
 
-// Get cart
-export const getCart = asyncHandler(async (req, res) => {
-  let cart = await Cart.findOne({ user: req.user.id })
-    .populate('items.product')
-    .populate('items.artisan', 'name')
+// @desc    Get user's cart (self-healing for deactivated products)
+// @route   GET /api/cart
+// @access  Private/Buyer
+export const getCart = async (req, res) => {
+  let cart = await Cart.findOne({ user: req.user._id })
+    .populate({
+      path: 'items.product',
+      select: 'name finalPrice price discount images stock isActive artisan',
+      populate: { path: 'artisan', select: 'name shopName' }
+    });
 
   if (!cart) {
-    cart = await Cart.create({ user: req.user.id })
+    cart = await Cart.create({ user: req.user._id, items: [] });
   }
 
-  res.json({ success: true, cart })
-})
+  // Self-Healing: Check if any populated products are null or deactivated
+  const originalItemCount = cart.items.length;
+  cart.items = cart.items.filter(
+    (item) => item.product && item.product.isActive
+  );
 
-// Add to cart
-export const addToCart = asyncHandler(async (req, res) => {
-  const { productId, quantity = 1 } = req.body
+  // If items were pruned, update price snapshots and recalculate totals
+  if (cart.items.length !== originalItemCount) {
+    cart.items.forEach((item) => {
+      item.price = item.product.finalPrice;
+    });
+    cart.calculateTotals();
+    await cart.save();
+  } else if (cart.items.length > 0) {
+    // Standard update: Refresh price snapshots in case prices changed
+    let priceChanged = false;
+    cart.items.forEach((item) => {
+      if (item.price !== item.product.finalPrice) {
+        item.price = item.product.finalPrice;
+        priceChanged = true;
+      }
+    });
+    if (priceChanged) {
+      cart.calculateTotals();
+      await cart.save();
+    }
+  }
+
+  res.status(200).json({
+    success: true,
+    cart
+  });
+};
+
+// @desc    Add product to cart
+// @route   POST /api/cart/add
+// @access  Private/Buyer
+export const addToCart = async (req, res) => {
+  const { productId, quantity = 1 } = req.body;
 
   if (quantity < 1) {
-    throw new ApiError(400, 'Quantity must be at least 1')
+    throw new ApiError(400, 'Quantity must be at least 1.');
   }
 
-  const product = await Product.findById(productId)
-  if (!product) {
-    throw new ApiError(404, 'Product not found')
+  // 1. Fetch and validate product
+  const product = await Product.findById(productId);
+  if (!product || !product.isActive) {
+    throw new ApiError(404, 'Product not found or has been deactivated.');
+  }
+
+  // Check stock
+  if (product.stock < quantity) {
+    throw new ApiError(400, `Insufficient stock. Only ${product.stock} units are available.`);
+  }
+
+  // 2. Fetch or create cart
+  let cart = await Cart.findOne({ user: req.user._id });
+  if (!cart) {
+    cart = await Cart.create({ user: req.user._id, items: [] });
+  }
+
+  // 3. Find if item already exists in cart
+  const existingItem = cart.items.find(
+    (item) => item.product.toString() === productId
+  );
+
+  if (existingItem) {
+    const newQuantity = existingItem.quantity + quantity;
+
+    if (newQuantity > 10) {
+      throw new ApiError(400, 'Cannot purchase more than 10 units of a single item in one order.');
+    }
+
+    if (product.stock < newQuantity) {
+      throw new ApiError(400, `Insufficient stock. Total cart quantity (${newQuantity}) exceeds available stock (${product.stock}).`);
+    }
+
+    existingItem.quantity = newQuantity;
+    existingItem.price = product.finalPrice; // Update snapshot to current price
+  } else {
+    if (quantity > 10) {
+      throw new ApiError(400, 'Cannot purchase more than 10 units of a single item in one order.');
+    }
+
+    cart.items.push({
+      product: productId,
+      quantity,
+      price: product.finalPrice // Snapshot current price
+    });
+  }
+
+  cart.calculateTotals();
+  await cart.save();
+
+  // Populate product details for response consistency
+  await cart.populate({
+    path: 'items.product',
+    select: 'name finalPrice price discount images stock isActive artisan'
+  });
+
+  res.status(200).json({
+    success: true,
+    message: `Added "${product.name}" to cart.`,
+    cart
+  });
+};
+
+// @desc    Update cart item quantity
+// @route   PUT /api/cart/update
+// @access  Private/Buyer
+export const updateCartItem = async (req, res) => {
+  const { productId, quantity } = req.body;
+
+  if (quantity < 1) {
+    throw new ApiError(400, 'Quantity must be at least 1.');
+  }
+
+  if (quantity > 10) {
+    throw new ApiError(400, 'Cannot purchase more than 10 units of a single item.');
+  }
+
+  // 1. Fetch cart
+  const cart = await Cart.findOne({ user: req.user._id });
+  if (!cart) {
+    throw new ApiError(404, 'Shopping cart not found.');
+  }
+
+  // 2. Find cart item
+  const item = cart.items.find(
+    (item) => item.product.toString() === productId
+  );
+
+  if (!item) {
+    throw new ApiError(404, 'Item not found in shopping cart.');
+  }
+
+  // 3. Fetch product for live stock checking
+  const product = await Product.findById(productId);
+  if (!product || !product.isActive) {
+    // If the product was deactivated, remove it entirely
+    cart.items = cart.items.filter((i) => i.product.toString() !== productId);
+    cart.calculateTotals();
+    await cart.save();
+    throw new ApiError(404, 'This product is no longer active and has been removed from your cart.');
   }
 
   if (product.stock < quantity) {
-    throw new ApiError(400, 'Insufficient stock')
+    throw new ApiError(400, `Insufficient stock. Only ${product.stock} units are available.`);
   }
 
-  let cart = await Cart.findOne({ user: req.user.id })
+  // 4. Update quantity and refresh price snapshot
+  item.quantity = quantity;
+  item.price = product.finalPrice;
+
+  cart.calculateTotals();
+  await cart.save();
+
+  await cart.populate({
+    path: 'items.product',
+    select: 'name finalPrice price discount images stock isActive artisan'
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Cart item quantity updated.',
+    cart
+  });
+};
+
+// @desc    Remove item from cart
+// @route   DELETE /api/cart/:productId
+// @access  Private/Buyer
+export const removeCartItem = async (req, res) => {
+  const cart = await Cart.findOne({ user: req.user._id });
   if (!cart) {
-    cart = await Cart.create({ user: req.user.id })
+    throw new ApiError(404, 'Shopping cart not found.');
   }
 
-  const existingItem = cart.items.find((item) => item.product.toString() === productId)
+  const originalLength = cart.items.length;
+  cart.items = cart.items.filter(
+    (item) => item.product.toString() !== req.params.productId
+  );
 
-  if (existingItem) {
-    if (existingItem.quantity + quantity > product.maxQuantityPerOrder) {
-      throw new ApiError(400, 'Exceeds maximum quantity per order')
-    }
-    existingItem.quantity += quantity
-  } else {
-    if (quantity > product.maxQuantityPerOrder) {
-      throw new ApiError(400, 'Exceeds maximum quantity per order')
-    }
-    cart.items.push({
-      product: productId,
-      artisan: product.artisan,
-      quantity,
-    })
+  if (cart.items.length === originalLength) {
+    throw new ApiError(404, 'Item not found in shopping cart.');
   }
 
-  cart.calculateTotals()
-  await cart.save()
+  cart.calculateTotals();
+  await cart.save();
 
-  res.json({ success: true, message: 'Added to cart', cart })
-})
+  await cart.populate({
+    path: 'items.product',
+    select: 'name finalPrice price discount images stock isActive artisan'
+  });
 
-// Update cart item
-export const updateCartItem = asyncHandler(async (req, res) => {
-  const { productId } = req.params
-  const { quantity } = req.body
+  res.status(200).json({
+    success: true,
+    message: 'Item removed from cart.',
+    cart
+  });
+};
 
-  if (quantity < 1) {
-    throw new ApiError(400, 'Quantity must be at least 1')
-  }
-
-  const cart = await Cart.findOne({ user: req.user.id })
+// @desc    Clear entire cart
+// @route   DELETE /api/cart/clear
+// @access  Private/Buyer
+export const clearCart = async (req, res) => {
+  const cart = await Cart.findOne({ user: req.user._id });
   if (!cart) {
-    throw new ApiError(404, 'Cart not found')
+    throw new ApiError(404, 'Shopping cart not found.');
   }
 
-  const item = cart.items.find((item) => item.product.toString() === productId)
-  if (!item) {
-    throw new ApiError(404, 'Item not in cart')
-  }
+  cart.items = [];
+  cart.subtotal = 0;
+  cart.totalItems = 0;
+  await cart.save();
 
-  const product = await Product.findById(productId)
-  if (quantity > product.stock) {
-    throw new ApiError(400, 'Insufficient stock')
-  }
-
-  if (quantity > product.maxQuantityPerOrder) {
-    throw new ApiError(400, 'Exceeds maximum quantity per order')
-  }
-
-  item.quantity = quantity
-  cart.calculateTotals()
-  await cart.save()
-
-  res.json({ success: true, message: 'Cart updated', cart })
-})
-
-// Remove from cart
-export const removeFromCart = asyncHandler(async (req, res) => {
-  const { productId } = req.params
-
-  const cart = await Cart.findOne({ user: req.user.id })
-  if (!cart) {
-    throw new ApiError(404, 'Cart not found')
-  }
-
-  cart.items = cart.items.filter((item) => item.product.toString() !== productId)
-  cart.calculateTotals()
-  await cart.save()
-
-  res.json({ success: true, message: 'Item removed from cart', cart })
-})
-
-// Clear cart
-export const clearCart = asyncHandler(async (req, res) => {
-  const cart = await Cart.findOne({ user: req.user.id })
-  if (!cart) {
-    throw new ApiError(404, 'Cart not found')
-  }
-
-  cart.items = []
-  cart.totalItems = 0
-  cart.subtotal = 0
-  await cart.save()
-
-  res.json({ success: true, message: 'Cart cleared' })
-})
-
-// Apply coupon
-export const applyCoupon = asyncHandler(async (req, res) => {
-  const { couponCode } = req.body
-
-  const cart = await Cart.findOne({ user: req.user.id })
-  if (!cart) {
-    throw new ApiError(404, 'Cart not found')
-  }
-
-  // Coupon logic can be extended with a Coupon model
-  cart.appliedCoupon = { code: couponCode }
-  await cart.save()
-
-  res.json({ success: true, message: 'Coupon applied', cart })
-})
+  res.status(200).json({
+    success: true,
+    message: 'Cart cleared successfully.'
+  });
+};

@@ -1,266 +1,410 @@
-import Order from '../models/Order.js'
-import Cart from '../models/Cart.js'
-import Product from '../models/Product.js'
-import mongoose from 'mongoose'
-import Razorpay from 'razorpay'
-import crypto from 'crypto'
-import { asyncHandler, ApiError } from '../middleware/errorHandler.js'
+import crypto from 'node:crypto';
+import Order from '../models/Order.js';
+import Cart from '../models/Cart.js';
+import Product from '../models/Product.js';
+import User from '../models/User.js';
+import { getRazorpay, hasValidKeys } from '../config/razorpay.js';
+import { ApiError } from '../middleware/errorHandler.js';
+import { ORDER_STATUSES, PAYMENT_STATUSES } from '../constants/categories.js';
+import { calculateShipping, calculateTax, paginateQuery } from '../utils/helpers.js';
+import { sendOrderConfirmation } from '../utils/email.js';
 
-let razorpay = null
+// @desc    Create a new Razorpay order & pending db order
+// @route   POST /api/orders
+// @access  Private/Buyer
+export const createOrder = async (req, res) => {
+  const { shippingAddress, notes } = req.body;
 
-const getRazorpay = () => {
-  if (!razorpay) {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      throw new ApiError(500, 'Razorpay keys not configured')
-    }
-    razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    })
+  // 1. Double check Razorpay configuration
+  if (!hasValidKeys()) {
+    throw new ApiError(500, 'Payment service is currently unavailable. Please contact support.');
   }
-  return razorpay
-}
 
-const hasRazorpayKeys = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
-
-// Create order
-export const createOrder = asyncHandler(async (req, res) => {
-  const { shippingAddress, notes } = req.body
-
-  const cart = await Cart.findOne({ user: req.user.id }).populate('items.product')
+  // 2. Fetch buyer's cart
+  const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
   if (!cart || cart.items.length === 0) {
-    throw new ApiError(400, 'Cart is empty')
+    throw new ApiError(400, 'Your cart is empty.');
   }
 
-  // Verify stock
+  // 3. Verify stock availability for all products in the cart
   for (const item of cart.items) {
+    if (!item.product || !item.product.isActive) {
+      throw new ApiError(400, `The product "${item.product ? item.product.name : 'Unknown'}" is no longer active.`);
+    }
     if (item.product.stock < item.quantity) {
-      throw new ApiError(400, `Insufficient stock for ${item.product.name}`)
+      throw new ApiError(400, `Insufficient stock for "${item.product.name}". Available stock: ${item.product.stock}`);
     }
   }
 
-  // Calculate totals
-  let subtotal = 0
-  cart.items.forEach((item) => {
-    subtotal += item.product.finalPrice * item.quantity
-  })
+  // 4. Calculate total amounts securely on the backend
+  let subtotal = 0;
+  const itemsData = [];
 
-  const shippingCost = subtotal > 500 ? 0 : 100
-  const tax = Math.round(subtotal * 0.05) // 5% GST
-  const totalAmount = subtotal + shippingCost + tax
+  for (const item of cart.items) {
+    const itemSubtotal = item.product.finalPrice * item.quantity;
+    subtotal += itemSubtotal;
 
-  let razorpayOrder = {
-    id: `mock_order_${Date.now()}`,
-    amount: Math.round(totalAmount * 100),
-    currency: 'INR',
-  }
+    // Safely extract product image URL, supporting both object schema and old string schemas
+    let imageUrl = '';
+    if (item.product.images && item.product.images.length > 0) {
+      const firstImg = item.product.images[0];
+      if (firstImg) {
+        imageUrl = typeof firstImg === 'string' ? firstImg : (firstImg.url || '');
+      }
+    }
+    // Hard fallback to placeholder to satisfy the non-empty Mongoose validator
+    if (!imageUrl) {
+      imageUrl = 'https://placehold.co/600x400?text=Handicrafts';
+    }
 
-  if (hasRazorpayKeys) {
-    const razorpayInstance = getRazorpay()
-    razorpayOrder = await razorpayInstance.orders.create({
-      amount: Math.round(totalAmount * 100),
-      currency: 'INR',
-      receipt: `karigar_${Date.now()}`,
-    })
-  }
-
-  const order = await Order.create({
-    user: req.user.id,
-    items: cart.items.map((item) => ({
+    itemsData.push({
       product: item.product._id,
-      artisan: item.artisan,
+      artisan: item.product.artisan,
+      name: item.product.name,
+      image: imageUrl,
       quantity: item.quantity,
       price: item.product.finalPrice,
-    })),
+      status: ORDER_STATUSES.PENDING
+    });
+  }
+
+  const shippingCharge = calculateShipping(subtotal);
+  const tax = calculateTax(subtotal);
+  const totalAmount = Math.round((subtotal + shippingCharge + tax) * 100) / 100;
+
+  // 5. Generate Razorpay Order
+  const razorpayInstance = getRazorpay();
+  let razorpayOrder;
+  try {
+    razorpayOrder = await razorpayInstance.orders.create({
+      amount: Math.round(totalAmount * 100), // convert to paise
+      currency: 'INR',
+      receipt: `receipt_${Date.now()}`
+    });
+  } catch (err) {
+    console.error('Razorpay Order Creation Failed:', err);
+    throw new ApiError(500, 'Failed to initialize payment gateway order.');
+  }
+
+  // 6. Save pending Order in the database
+  const order = await Order.create({
+    user: req.user._id,
+    items: itemsData,
     shippingAddress,
+    payment: {
+      razorpayOrderId: razorpayOrder.id,
+      method: 'razorpay',
+      status: PAYMENT_STATUSES.PENDING
+    },
     subtotal,
-    shippingCost,
+    shippingCharge,
     tax,
     totalAmount,
-    notes,
-    paymentDetails: {
-      razorpayOrderId: razorpayOrder.id,
-    },
-    paymentMethod: 'razorpay',
-  })
+    status: ORDER_STATUSES.PENDING,
+    notes
+  });
 
   res.status(201).json({
     success: true,
-    message: 'Order created successfully',
-    keyId: hasRazorpayKeys ? process.env.RAZORPAY_KEY_ID : null,
-    mockPayment: !hasRazorpayKeys,
+    message: 'Order created successfully. Awaiting payment.',
     order,
     razorpayOrder: {
       id: razorpayOrder.id,
       amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
+      currency: razorpayOrder.currency
     },
-  })
-})
+    key: process.env.RAZORPAY_KEY_ID
+  });
+};
 
-// Verify payment
-export const verifyPayment = asyncHandler(async (req, res) => {
-  const { orderId, razorpayPaymentId, razorpaySignature } = req.body
+// @desc    Verify Razorpay payment signature & confirm order
+// @route   POST /api/orders/verify-payment
+// @access  Private
+export const verifyPayment = async (req, res) => {
+  const razorpayOrderId = req.body.razorpayOrderId || req.body.razorpay_order_id;
+  const razorpayPaymentId = req.body.razorpayPaymentId || req.body.razorpay_payment_id;
+  const razorpaySignature = req.body.razorpaySignature || req.body.razorpay_signature;
 
-  const order = await Order.findById(orderId)
+  if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+    throw new ApiError(400, 'Missing payment parameters for verification.');
+  }
+
+  // 1. Verify Payment Signature
+  const generatedSignature = crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpayOrderId}|${razorpayPaymentId}`) // CORRECT ORDER: orderId|paymentId
+    .digest('hex');
+
+  if (generatedSignature !== razorpaySignature) {
+    throw new ApiError(400, 'Cryptographic payment signature verification failed.');
+  }
+
+  // 2. Find corresponding order
+  const order = await Order.findOne({ 'payment.razorpayOrderId': razorpayOrderId });
   if (!order) {
-    throw new ApiError(404, 'Order not found')
-  }
-  // Only allow the order owner or an admin to verify / mark payment
-  if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
-    throw new ApiError(403, 'Not authorized to verify this payment')
+    throw new ApiError(404, 'No pending order found for this payment transaction.');
   }
 
-  // If Razorpay keys are configured, verify signature
-  if (hasRazorpayKeys) {
-    const razorpayOrderId = order.paymentDetails?.razorpayOrderId
-    if (!razorpayOrderId) {
-      throw new ApiError(400, 'Razorpay order id missing for verification')
-    }
-
-    const generatedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(`${razorpayPaymentId}|${razorpayOrderId}`)
-      .digest('hex')
-
-    if (generatedSignature !== razorpaySignature) {
-      throw new ApiError(400, 'Invalid payment signature')
-    }
-  }
-
-  order.paymentDetails.razorpayPaymentId = razorpayPaymentId
-  order.paymentDetails.razorpaySignature = razorpaySignature
-  order.paymentStatus = 'completed'
-  order.status = 'confirmed'
-
-  // Reduce stock for the products in the order
+  // 3. Atomically decrement stock
   for (const item of order.items) {
-    try {
-      await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } })
-    } catch (err) {
-      // Log and continue; stock inconsistencies handled elsewhere
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: item.product, stock: { $gte: item.quantity } },
+      { $inc: { stock: -item.quantity } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      // Out of stock case (extremely rare if check happens immediately at checkout)
+      throw new ApiError(400, `Stock exhausted for "${item.name}" before payment could be verified.`);
     }
   }
 
-  await order.save()
+  // 4. Update order payment statuses
+  order.payment.razorpayPaymentId = razorpayPaymentId;
+  order.payment.razorpaySignature = razorpaySignature;
+  order.payment.status = PAYMENT_STATUSES.COMPLETED;
+  order.status = ORDER_STATUSES.CONFIRMED;
 
-  // Clear cart for the order owner
-  await Cart.updateOne({ user: order.user }, { items: [], totalItems: 0 })
+  // Set all items status to confirmed
+  order.items.forEach((item) => {
+    item.status = ORDER_STATUSES.CONFIRMED;
+  });
 
-  res.json({
+  await order.save();
+
+  // 5. Clear user's cart
+  await Cart.findOneAndUpdate(
+    { user: order.user },
+    { $set: { items: [], subtotal: 0, totalItems: 0 } }
+  );
+
+  // 6. Send order confirmation email
+  try {
+    const buyer = await User.findById(order.user);
+    if (buyer) {
+      await sendOrderConfirmation(order, buyer);
+    }
+  } catch (err) {
+    console.error(`Failed to send order email: ${err.message}`);
+  }
+
+  res.status(200).json({
     success: true,
-    message: 'Payment verified successfully',
-    order,
-  })
-})
+    message: 'Payment verified and order confirmed successfully.',
+    order
+  });
+};
 
-// Get orders
-export const getOrders = asyncHandler(async (req, res) => {
-  let filter = {}
+// @desc    Get buyer's own orders
+// @route   GET /api/orders/my-orders
+// @access  Private/Buyer
+export const getMyOrders = async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
 
-  if (req.user.role === 'buyer') {
-    filter.user = req.user.id
-  } else if (req.user.role === 'artisan') {
-    filter['items.artisan'] = req.user.id
-  }
+  const paginatedResults = await paginateQuery(
+    Order,
+    { user: req.user._id },
+    page,
+    limit,
+    '',
+    { createdAt: -1 }
+  );
 
-  const orders = await Order.find(filter)
-    .populate('user', 'name email')
-    .populate('items.product', 'name images')
-    .populate('items.artisan', 'name')
-    .sort({ createdAt: -1 })
+  res.status(200).json({
+    success: true,
+    ...paginatedResults
+  });
+};
 
-  res.json({ success: true, orders })
-})
+// @desc    Get orders placed for artisan's products
+// @route   GET /api/orders/seller-orders
+// @access  Private/Artisan
+export const getSellerOrders = async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
 
-// Get order by ID
-export const getOrderById = asyncHandler(async (req, res) => {
+  // Find orders where items.artisan contains the artisan's id
+  const paginatedResults = await paginateQuery(
+    Order,
+    { 'items.artisan': req.user._id, 'payment.status': PAYMENT_STATUSES.COMPLETED },
+    page,
+    limit,
+    '',
+    { createdAt: -1 }
+  );
+
+  // Filter items in each order to only show products belonging to this seller
+  const filteredOrders = paginatedResults.results.map((ord) => {
+    const orderObj = ord.toObject();
+    orderObj.items = orderObj.items.filter(
+      (item) => item.artisan.toString() === req.user._id.toString()
+    );
+    return orderObj;
+  });
+
+  res.status(200).json({
+    success: true,
+    results: filteredOrders,
+    pagination: paginatedResults.pagination
+  });
+};
+
+// @desc    Get single order by ID with secure authorization checks
+// @route   GET /api/orders/:id
+// @access  Private
+export const getOrderById = async (req, res) => {
   const order = await Order.findById(req.params.id)
-    .populate('user', 'name email phone')
-    .populate('items.product', 'name images price')
-    .populate('items.artisan', 'name shopName')
+    .populate({ path: 'user', select: 'name email phone' })
+    .populate({ path: 'items.product', select: 'name images price finalPrice' })
+    .populate({ path: 'items.artisan', select: 'name shopName' });
 
   if (!order) {
-    throw new ApiError(404, 'Order not found')
+    throw new ApiError(404, 'Order not found.');
   }
 
-  res.json({ success: true, order })
-})
+  // Security authorization: User must be order owner, seller of an item, or an admin
+  const isOwner = order.user._id.toString() === req.user._id.toString();
+  const isSeller = order.items.some(
+    (item) => item.artisan._id.toString() === req.user._id.toString()
+  );
+  const isAdmin = req.user.role === 'admin';
 
-// Update order status (artisan/admin)
-export const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body
-  const order = await Order.findById(req.params.id)
+  if (!isOwner && !isSeller && !isAdmin) {
+    throw new ApiError(403, 'Not authorized to view this order details.');
+  }
+
+  res.status(200).json({
+    success: true,
+    order
+  });
+};
+
+// @desc    Update order item shipping status (Artisan only)
+// @route   PUT /api/orders/:id/item/:itemId/status
+// @access  Private/Artisan
+export const updateItemStatus = async (req, res) => {
+  const { status } = req.body;
+  const order = await Order.findById(req.params.id);
 
   if (!order) {
-    throw new ApiError(404, 'Order not found')
+    throw new ApiError(404, 'Order not found.');
   }
 
-  if (req.user.role === 'artisan') {
-    const itemsForArtisan = order.items.filter(
-      (item) => item.artisan.toString() === req.user.id
-    )
-    if (itemsForArtisan.length === 0) {
-      throw new ApiError(403, 'Not authorized to update this order')
-    }
-
-    // Update individual item status
-    order.items.forEach((item) => {
-      if (item.artisan.toString() === req.user.id) {
-        item.status = status
-      }
-    })
-  } else {
-    order.status = status
+  const item = order.items.id(req.params.itemId);
+  if (!item) {
+    throw new ApiError(404, 'Order item not found.');
   }
 
-  await order.save()
-  res.json({ success: true, message: 'Order updated successfully', order })
-})
+  // Authorization: Only the artisan who owns the item can update its status
+  if (item.artisan.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    throw new ApiError(403, 'Not authorized to update this item status.');
+  }
 
-// Cancel order
-export const cancelOrder = asyncHandler(async (req, res) => {
-  const { cancellationReason } = req.body
-  const order = await Order.findById(req.params.id)
+  item.status = status;
+
+  // Cascade order-level status based on item statuses
+  const allItemStatuses = order.items.map((i) => i.status);
+  
+  if (allItemStatuses.every((s) => s === ORDER_STATUSES.DELIVERED)) {
+    order.status = ORDER_STATUSES.DELIVERED;
+  } else if (allItemStatuses.every((s) => s === ORDER_STATUSES.SHIPPED || s === ORDER_STATUSES.DELIVERED)) {
+    order.status = ORDER_STATUSES.SHIPPED;
+  } else if (allItemStatuses.some((s) => s === ORDER_STATUSES.PROCESSING)) {
+    order.status = ORDER_STATUSES.PROCESSING;
+  }
+
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Item shipping status updated successfully.',
+    order
+  });
+};
+
+// @desc    Cancel order (Buyer only, only if order is not shipped)
+// @route   PUT /api/orders/:id/cancel
+// @access  Private/Buyer
+export const cancelOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
 
   if (!order) {
-    throw new ApiError(404, 'Order not found')
+    throw new ApiError(404, 'Order not found.');
   }
 
-  if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
-    throw new ApiError(403, 'Not authorized to cancel this order')
+  // Verify ownership
+  if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    throw new ApiError(403, 'Not authorized to cancel this order.');
   }
 
-  order.status = 'cancelled'
-  order.cancellationReason = cancellationReason
-  order.cancelledAt = new Date()
-
-  // Refund logic
-  if (order.paymentStatus === 'completed') {
-    order.paymentStatus = 'refunded'
+  // Can only cancel pending or newly confirmed orders (not processing/shipped)
+  const nonCancellableStates = [
+    ORDER_STATUSES.PROCESSING,
+    ORDER_STATUSES.SHIPPED,
+    ORDER_STATUSES.DELIVERED,
+    ORDER_STATUSES.CANCELLED
+  ];
+  if (nonCancellableStates.includes(order.status)) {
+    throw new ApiError(400, `Cannot cancel order at "${order.status}" stage.`);
   }
 
-  await order.save()
-  res.json({ success: true, message: 'Order cancelled successfully' })
-})
+  order.status = ORDER_STATUSES.CANCELLED;
+  order.items.forEach((item) => {
+    item.status = ORDER_STATUSES.CANCELLED;
+  });
 
-// Get sales for artisan
-export const getSalesStats = asyncHandler(async (req, res) => {
+  // Restore inventory stocks atomically
+  for (const item of order.items) {
+    await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
+  }
+
+  // Handle payments if completed
+  if (order.payment.status === PAYMENT_STATUSES.COMPLETED) {
+    order.payment.status = PAYMENT_STATUSES.REFUNDED;
+    // NOTE: Razorpay refund API logic can be optionally integrated here
+  }
+
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Order cancelled successfully and product inventory restored.'
+  });
+};
+
+// @desc    Get detailed seller sales statistics
+// @route   GET /api/orders/stats
+// @access  Private/Artisan
+export const getSalesStats = async (req, res) => {
   const stats = await Order.aggregate([
+    { $unwind: '$items' },
     {
       $match: {
-        'items.artisan': new mongoose.Types.ObjectId(req.user.id),
-      },
+        'items.artisan': req.user._id,
+        'payment.status': PAYMENT_STATUSES.COMPLETED
+      }
     },
     {
       $group: {
         _id: null,
-        totalOrders: { $sum: 1 },
-        totalRevenue: { $sum: '$totalAmount' },
-        avgOrderValue: { $avg: '$totalAmount' },
-      },
+        totalOrders: { $addToSet: '$_id' }, // Uniquely distinct orders
+        totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }, // Artisan's own items only
+        totalItemsSold: { $sum: '$items.quantity' }
+      }
     },
-  ])
+    {
+      $project: {
+        _id: 0,
+        totalOrders: { $size: '$totalOrders' },
+        totalRevenue: 1,
+        totalItemsSold: 1
+      }
+    }
+  ]);
 
-  res.json({ success: true, stats: stats[0] || {} })
-})
+  const responseStats = stats[0] || { totalOrders: 0, totalRevenue: 0, totalItemsSold: 0 };
+
+  res.status(200).json({
+    success: true,
+    stats: responseStats
+  });
+};

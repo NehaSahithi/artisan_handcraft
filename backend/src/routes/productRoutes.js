@@ -1,23 +1,58 @@
-import express from 'express'
-import * as productController from '../controllers/productController.js'
-import { protect, authorize } from '../middleware/auth.js'
-import { uploadMultiple } from '../middleware/upload.js'
+import express from 'express';
+import * as productController from '../controllers/productController.js';
+import { protect, authorize, optionalAuth } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { uploadProductImages } from '../middleware/upload.js';
+import {
+  createProductSchema,
+  updateProductSchema,
+  reviewSchema
+} from '../validators/productValidator.js';
 
-const router = express.Router()
+const router = express.Router();
 
-// Public routes
-router.get('/', productController.getAllProducts)
-router.get('/featured', productController.getFeaturedProducts)
-router.get('/categories', productController.getCategories)
-router.get('/artisan/:artisanId', productController.getProductsByArtisan)
-router.get('/:id', productController.getProductById)
+// 1. Isolated Artisan Inventory Management (Placed first to avoid route precedence conflicts)
+router.get('/my-products', protect, authorize('artisan'), productController.getMyProducts);
 
-// Protected routes (artisan)
-router.post('/', protect, authorize('artisan'), uploadMultiple, productController.createProduct)
-router.put('/:id', protect, authorize('artisan', 'admin'), uploadMultiple, productController.updateProduct)
-router.delete('/:id', protect, authorize('artisan', 'admin'), productController.deleteProduct)
+// 2. Public catalog views (with optional auth mapping for wishlist highlights)
+router.get('/', optionalAuth, productController.getProducts);
+router.get('/featured', productController.getFeaturedProducts);
+router.get('/categories', productController.getCategories);
+router.get('/:id', optionalAuth, productController.getProductById);
 
-// Review routes
-router.post('/:productId/reviews', protect, productController.addReview)
+// 3. Protected Product CRUD Operations (Cloudinary uploads + Zod validations)
+router.post(
+  '/', 
+  protect, 
+  authorize('artisan'), 
+  uploadProductImages, 
+  validate(createProductSchema), 
+  productController.createProduct
+);
 
-export default router
+router.put(
+  '/:id', 
+  protect, 
+  authorize('artisan', 'admin'), 
+  uploadProductImages, 
+  validate(updateProductSchema), 
+  productController.updateProduct
+);
+
+router.delete(
+  '/:id', 
+  protect, 
+  authorize('artisan', 'admin'), 
+  productController.deleteProduct
+);
+
+// 4. Secure Reviews (Restricted to verified Buyers)
+router.post(
+  '/:id/reviews', 
+  protect, 
+  authorize('buyer'), 
+  validate(reviewSchema), 
+  productController.addReview
+);
+
+export default router;

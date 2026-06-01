@@ -1,209 +1,329 @@
-import ArtisanProfile from '../models/ArtisanProfile.js'
-import User from '../models/User.js'
-import Product from '../models/Product.js'
-import { asyncHandler, ApiError } from '../middleware/errorHandler.js'
+import ArtisanProfile from '../models/ArtisanProfile.js';
+import User from '../models/User.js';
+import Product from '../models/Product.js';
+import { ApiError } from '../middleware/errorHandler.js';
+import { escapeRegex, paginateQuery } from '../utils/helpers.js';
+import { CRAFT_CATEGORIES, KYC_STATUSES } from '../constants/categories.js';
+import cloudinary from '../config/cloudinary.js';
 
-// Get all artisans
-export const getAllArtisans = asyncHandler(async (req, res) => {
-  const { state, craft, search, page = 1, limit = 20 } = req.query
+// Whitelisted profile fields for security (prevents mass-assignment updates to isVerified, totalSales, etc.)
+const whitelistedProfileFields = (source) => {
+  const allowed = [
+    'shopName',
+    'tagline',
+    'story',
+    'craftTradition',
+    'yearsOfExperience',
+    'socialLinks'
+  ];
 
-  let filter = { isActive: true }
-  if (state) filter.state = state
-  if (craft) filter.craftCategories = craft
-  if (search) {
-    filter.$or = [
-      { shopName: { $regex: search, $options: 'i' } },
-      { story: { $regex: search, $options: 'i' } },
-    ]
+  const picked = {};
+  
+  allowed.forEach((field) => {
+    if (source[field] !== undefined) {
+      picked[field] = source[field];
+    }
+  });
+
+  // Nested Location details whitelisting
+  if (source.location && typeof source.location === 'object') {
+    picked.location = {};
+    const locAllowed = ['village', 'district', 'state', 'pincode'];
+    locAllowed.forEach((f) => {
+      if (source.location[f] !== undefined) {
+        picked.location[f] = source.location[f];
+      }
+    });
   }
 
-  const skip = (page - 1) * limit
-  const artisans = await ArtisanProfile.find(filter)
-    .populate('user', 'name email phone')
-    .limit(limit)
-    .skip(skip)
-    .sort({ isFeatured: -1, 'rating.average': -1 })
+  // Categories list
+  if (source.craftCategories && Array.isArray(source.craftCategories)) {
+    picked.craftCategories = source.craftCategories.filter(cat => 
+      CRAFT_CATEGORIES.includes(cat)
+    );
+  }
 
-  const total = await ArtisanProfile.countDocuments(filter)
+  return picked;
+};
 
-  res.json({
+// @desc    Get all verified artisans (public listing)
+// @route   GET /api/artisans
+// @access  Public
+export const getAllArtisans = async (req, res) => {
+  const { state, craft, search, page = 1, limit = 12 } = req.query;
+
+  // Public listings only show verified and active profiles
+  const filter = { isVerified: true };
+
+  if (state) {
+    filter['location.state'] = state;
+  }
+
+  if (craft) {
+    filter.craftCategories = { $in: [craft] };
+  }
+
+  if (search) {
+    const escapedSearch = escapeRegex(search);
+    filter.$or = [
+      { shopName: { $regex: escapedSearch, $options: 'i' } },
+      { story: { $regex: escapedSearch, $options: 'i' } }
+    ];
+  }
+
+  const paginatedResults = await paginateQuery(
+    ArtisanProfile,
+    filter,
+    page,
+    limit,
+    { path: 'user', select: 'name email phone avatar' },
+    { isFeatured: -1, 'rating.average': -1 }
+  );
+
+  res.status(200).json({
     success: true,
-    artisans,
-    pagination: { total, pages: Math.ceil(total / limit), currentPage: page },
-  })
-})
+    ...paginatedResults
+  });
+};
 
-// Get artisan by ID
-export const getArtisanById = asyncHandler(async (req, res) => {
+// @desc    Get artisan profile & products by ID
+// @route   GET /api/artisans/:id
+// @access  Public
+export const getArtisanById = async (req, res) => {
   const artisan = await ArtisanProfile.findById(req.params.id)
-    .populate('user', '-password')
+    .populate({ path: 'user', select: 'name email phone avatar' });
 
   if (!artisan) {
-    throw new ApiError(404, 'Artisan not found')
+    throw new ApiError(404, 'Artisan profile not found.');
   }
 
-  const artisanUserId = artisan.user?._id || artisan.user
-  const products = artisanUserId
-    ? await Product.find({ artisan: artisanUserId, isActive: true }).limit(12)
-    : []
+  // Fetch artisan products
+  const products = await Product.find({ artisan: artisan.user?._id, isActive: true })
+    .limit(12)
+    .sort({ createdAt: -1 });
 
-  res.json({
+  res.status(200).json({
     success: true,
     artisan,
-    products,
-  })
-})
+    products
+  });
+};
 
-// Create/Update artisan profile
-export const createOrUpdateProfile = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'artisan') {
-    throw new ApiError(403, 'Only artisans can create/update profile')
-  }
-
-  let profile = await ArtisanProfile.findOne({ user: req.user.id })
+// @desc    Create or update artisan profile details
+// @route   PUT /api/artisans/profile
+// @access  Private/Artisan
+export const createOrUpdateProfile = async (req, res) => {
+  let profile = await ArtisanProfile.findOne({ user: req.user._id });
+  const whitelistedData = whitelistedProfileFields(req.body);
 
   if (!profile) {
-    profile = await ArtisanProfile.create({
-      ...req.body,
-      user: req.user.id,
-    })
+    // New Profile Creation
+    whitelistedData.user = req.user._id;
+    profile = await ArtisanProfile.create(whitelistedData);
+    
+    // Explicitly update user role to artisan
+    await User.findByIdAndUpdate(req.user._id, { role: 'artisan' });
   } else {
-    Object.assign(profile, req.body)
-    await profile.save()
+    // Updating existing profile
+    profile.set(whitelistedData);
+    await profile.save();
   }
 
-  // Update user role if not already set
-  const user = await User.findByIdAndUpdate(req.user.id, { role: 'artisan' }, { new: true })
-
-  res.status(profile._id ? 200 : 201).json({
+  res.status(200).json({
     success: true,
-    message: 'Profile saved successfully',
-    profile,
-  })
-})
+    message: 'Artisan profile saved successfully.',
+    profile
+  });
+};
 
-// Get my profile
-export const getMyProfile = asyncHandler(async (req, res) => {
-  const profile = await ArtisanProfile.findOne({ user: req.user.id })
-    .populate('user', '-password')
-
-  if (!profile) {
-    throw new ApiError(404, 'Profile not found')
-  }
-
-  res.json({ success: true, profile })
-})
-
-// Update KYC
-export const updateKYC = asyncHandler(async (req, res) => {
-  const profile = await ArtisanProfile.findOne({ user: req.user.id })
+// @desc    Get current artisan's own profile
+// @route   GET /api/artisans/me
+// @access  Private/Artisan
+export const getMyProfile = async (req, res) => {
+  const profile = await ArtisanProfile.findOne({ user: req.user._id })
+    .populate({ path: 'user', select: 'name email phone avatar' });
 
   if (!profile) {
-    throw new ApiError(404, 'Profile not found')
+    throw new ApiError(404, 'Artisan profile does not exist. Please complete setup.');
   }
 
-  profile.kyc = { ...profile.kyc, ...req.body, status: 'submitted' }
-  await profile.save()
+  res.status(200).json({
+    success: true,
+    profile
+  });
+};
 
-  res.json({ success: true, message: 'KYC submitted successfully', profile })
-})
-
-// Get featured artisans
-export const getFeaturedArtisans = asyncHandler(async (req, res) => {
-  const artisans = await ArtisanProfile.find({
-    isFeatured: true,
-    isActive: true,
-  })
-    .populate('user', 'name email')
-    .limit(12)
-
-  res.json({ success: true, artisans })
-})
-
-// Search artisans by state
-export const getArtisansByState = asyncHandler(async (req, res) => {
-  const { state } = req.params
-
-  const artisans = await ArtisanProfile.find({
-    state,
-    isActive: true,
-  })
-    .populate('user', 'name email')
-    .limit(20)
-
-  res.json({ success: true, artisans })
-})
-
-// Get artisan statistics
-export const getArtisanStats = asyncHandler(async (req, res) => {
-  const profile = await ArtisanProfile.findOne({ user: req.user.id })
+// @desc    Submit KYC details & documents for verification
+// @route   POST /api/artisans/kyc
+// @access  Private/Artisan
+export const updateKYC = async (req, res) => {
+  const profile = await ArtisanProfile.findOne({ user: req.user._id });
   if (!profile) {
-    throw new ApiError(404, 'Profile not found')
+    throw new ApiError(404, 'Artisan profile not found. Complete profile details first.');
   }
 
-  const products = await Product.find({ artisan: req.user.id })
-  const totalProducts = products.length
-  const activeProducts = products.filter((p) => p.isActive).length
+  // 1. Validate documents uploads
+  if (!req.files || !req.files.aadhaarDoc || !req.files.panDoc) {
+    throw new ApiError(400, 'Please upload both Aadhaar and PAN card documents.');
+  }
 
-  res.json({
+  const { aadhaarNumber, panNumber, bankDetails } = req.body;
+  if (!aadhaarNumber || !panNumber || !bankDetails) {
+    throw new ApiError(400, 'Please provide Aadhaar number, PAN number, and Bank Account details.');
+  }
+
+  let bankParsed = bankDetails;
+  if (typeof bankDetails === 'string') {
+    try {
+      bankParsed = JSON.parse(bankDetails);
+    } catch (e) {
+      throw new ApiError(400, 'Invalid bank account details structure.');
+    }
+  }
+
+  if (!bankParsed.accountNumber || !bankParsed.ifsc || !bankParsed.bankName) {
+    throw new ApiError(400, 'Bank details must include Account Number, IFSC, and Bank Name.');
+  }
+
+  // Clean up old KYC documents on Cloudinary if they exist
+  if (profile.kyc.aadhaarDoc && profile.kyc.aadhaarDoc.includes('cloudinary')) {
+    const pubId = profile.kyc.aadhaarDoc.split('/').pop().split('.')[0];
+    try {
+      await cloudinary.uploader.destroy(`karigar/kyc/${pubId}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  if (profile.kyc.panDoc && profile.kyc.panDoc.includes('cloudinary')) {
+    const pubId = profile.kyc.panDoc.split('/').pop().split('.')[0];
+    try {
+      await cloudinary.uploader.destroy(`karigar/kyc/${pubId}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // 2. Set whitelisted KYC fields
+  profile.kyc = {
+    status: KYC_STATUSES.PENDING,
+    aadhaarNumber,
+    panNumber,
+    aadhaarDoc: req.files.aadhaarDoc[0].path, // Cloudinary URL
+    panDoc: req.files.panDoc[0].path, // Cloudinary URL
+    bankDetails: {
+      accountNumber: bankParsed.accountNumber,
+      ifsc: bankParsed.ifsc,
+      bankName: bankParsed.bankName
+    },
+    submittedAt: new Date(),
+    verifiedAt: null,
+    rejectionReason: null
+  };
+
+  await profile.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'KYC documents submitted successfully. Verification is pending.',
+    kycStatus: profile.kyc.status
+  });
+};
+
+// @desc    Update shop media (Logo / Banner)
+// @route   PUT /api/artisans/shop-media
+// @access  Private/Artisan
+export const updateShopMedia = async (req, res) => {
+  const profile = await ArtisanProfile.findOne({ user: req.user._id });
+  if (!profile) {
+    throw new ApiError(404, 'Artisan profile not found.');
+  }
+
+  // Logo update
+  if (req.files?.shopLogo) {
+    // Delete old logo
+    if (profile.shopLogo && profile.shopLogo.includes('cloudinary')) {
+      const pubId = profile.shopLogo.split('/').pop().split('.')[0];
+      try {
+        await cloudinary.uploader.destroy(`karigar/shops/${pubId}`);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    profile.shopLogo = req.files.shopLogo[0].path;
+  }
+
+  // Banner update
+  if (req.files?.shopBanner) {
+    // Delete old banner
+    if (profile.shopBanner && profile.shopBanner.includes('cloudinary')) {
+      const pubId = profile.shopBanner.split('/').pop().split('.')[0];
+      try {
+        await cloudinary.uploader.destroy(`karigar/shops/${pubId}`);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    profile.shopBanner = req.files.shopBanner[0].path;
+  }
+
+  await profile.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Shop media assets updated successfully.',
+    profile
+  });
+};
+
+// @desc    Get dashboard summary statistics (Artisan only)
+// @route   GET /api/artisans/dashboard/stats
+// @access  Private/Artisan
+export const getDashboardStats = async (req, res) => {
+  const profile = await ArtisanProfile.findOne({ user: req.user._id });
+  if (!profile) {
+    throw new ApiError(404, 'Profile not found.');
+  }
+
+  const productsCount = await Product.countDocuments({ artisan: req.user._id });
+  const activeProducts = await Product.countDocuments({ artisan: req.user._id, isActive: true });
+
+  res.status(200).json({
     success: true,
     stats: {
-      totalProducts,
-      activeProducts,
+      shopName: profile.shopName,
       totalSales: profile.totalSales,
       totalRevenue: profile.totalRevenue,
-      rating: profile.rating,
-      isVerified: profile.kyc.status === 'verified',
-    },
-  })
-})
+      ratingAverage: profile.rating.average,
+      ratingCount: profile.rating.count,
+      totalProducts: productsCount,
+      activeProducts,
+      isVerified: profile.isVerified,
+      kycStatus: profile.kyc.status
+    }
+  });
+};
 
-// Update shop banner/logo
-export const updateShopMedia = asyncHandler(async (req, res) => {
-  const profile = await ArtisanProfile.findOne({ user: req.user.id })
+// @desc    Get featured artisans
+// @route   GET /api/artisans/featured
+// @access  Public
+export const getFeaturedArtisans = async (req, res) => {
+  const artisans = await ArtisanProfile.find({ isFeatured: true, isVerified: true })
+    .populate({ path: 'user', select: 'name avatar' })
+    .limit(6);
 
-  if (!profile) {
-    throw new ApiError(404, 'Profile not found')
-  }
+  res.status(200).json({
+    success: true,
+    artisans
+  });
+};
 
-  if (req.files?.shopBanner) {
-    profile.shopBanner = req.files.shopBanner[0].filename
-  }
-
-  if (req.files?.shopLogo) {
-    profile.shopLogo = req.files.shopLogo[0].filename
-  }
-
-  await profile.save()
-  res.json({ success: true, message: 'Media updated', profile })
-})
-
-// Get all states with artisans
-export const getStatesList = asyncHandler(async (req, res) => {
-  const states = await ArtisanProfile.distinct('state', { isActive: true })
-  res.json({ success: true, states: states.sort() })
-})
-
-// Get craft traditions
-export const getCrafts = asyncHandler(async (req, res) => {
-  const crafts = [
-    'Pottery',
-    'Handloom',
-    'Woodwork',
-    'Jewellery',
-    'Painting',
-    'Embroidery',
-    'Metalwork',
-    'Leatherwork',
-    'Bamboo & Cane',
-    'Stone Carving',
-    'Terracotta',
-    'Block Printing',
-    'Dhokra',
-    'Warli Art',
-    'Madhubani',
-    'Pattachitra',
-  ]
-
-  res.json({ success: true, crafts })
-})
+// @desc    Get list of states having active artisans
+// @route   GET /api/artisans/states
+// @access  Public
+export const getStatesList = async (req, res) => {
+  const states = await ArtisanProfile.distinct('location.state', { isVerified: true });
+  res.status(200).json({
+    success: true,
+    states: states.sort()
+  });
+};

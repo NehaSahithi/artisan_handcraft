@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from "../../store/authStore";
@@ -23,13 +23,25 @@ const BlockPrintPattern = () => (
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login } = useAuthStore()
+  const { login, isAuthenticated, user } = useAuthStore()
   
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard')
+      } else if (user.role === 'artisan') {
+        navigate('/seller/dashboard')
+      } else {
+        navigate('/')
+      }
+    }
+  }, [isAuthenticated, user, navigate])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -43,16 +55,16 @@ export default function LoginPage() {
 
     setLoading(true)
     try {
-      const user = await login(formData.email, formData.password)
+      const authenticatedUser = await login(formData.email, formData.password)
       toast.success("Welcome back to the Curation.")
       
       // Route based on role
-      if (user.role === 'admin') navigate('/admin/dashboard')
-      else if (user.role === 'artisan') navigate('/seller/dashboard')
+      if (authenticatedUser.role === 'admin') navigate('/admin/dashboard')
+      else if (authenticatedUser.role === 'artisan') navigate('/seller/dashboard')
       else navigate('/')
       
     } catch (error) {
-      toast.error(error.message || "Authentication failed")
+      toast.error(error.response?.data?.message || "Authentication failed")
     } finally {
       setLoading(false)
     }

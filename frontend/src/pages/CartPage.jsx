@@ -32,7 +32,7 @@ const HeritageDivider = () => (
 )
 
 export default function CartPage() {
-  const { getCart, items, removeItem, updateItem, loading } = useCartStore()
+  const { getCart, items, removeItem, updateItem, subtotal, loading } = useCartStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -57,13 +57,13 @@ export default function CartPage() {
     }
   }
 
-  const totalAmount = items.reduce((sum, item) => {
+  const totalAmount = subtotal || items.reduce((sum, item) => {
     const price = item.product?.finalPrice ?? item.product?.price ?? item.price ?? 0
     return sum + price * item.quantity
   }, 0)
   const shippingCharge = totalAmount >= 999 || totalAmount === 0 ? 0 : 99
-  const tax = Math.round(totalAmount * 0.05)
-  const finalAmount = totalAmount + shippingCharge + tax
+  const tax = Math.round(totalAmount * 0.05 * 100) / 100
+  const finalAmount = Math.round((totalAmount + shippingCharge + tax) * 100) / 100
 
   // --- EMPTY STATE (Heritage Gallery Vibe) ---
   if (items.length === 0) {
@@ -120,7 +120,7 @@ export default function CartPage() {
                     {/* Image Block */}
                     <div className="w-full sm:w-40 h-40 flex-shrink-0 border-[3px] border-background shadow-inner overflow-hidden relative">
                       <img
-                        src={item.product?.images?.[0] || 'https://placehold.co/300x300?text=Art'}
+                        src={item.product?.images?.[0]?.url || 'https://placehold.co/300x300?text=Art'}
                         alt={item.product?.name || 'Artifact'}
                         className="w-full h-full object-cover filter sepia-[0.1] group-hover:sepia-0 transition-all duration-700 group-hover:scale-110"
                       />

@@ -1,60 +1,83 @@
-import jwt from 'jsonwebtoken'
-import User from '../models/User.js'
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import { ApiError } from './errorHandler.js';
 
 export const protect = async (req, res, next) => {
-  let token = req.cookies?.token
+  let token = req.cookies?.token;
 
   if (!token && req.headers.authorization?.startsWith('Bearer ')) {
-    token = req.headers.authorization.split(' ')[1]
+    token = req.headers.authorization.split(' ')[1];
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Not authorized to access this route' })
+    throw new ApiError(401, 'Not authorized to access this route. Token missing.');
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = await User.findById(decoded.id)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id);
 
     if (!req.user) {
-      return res.status(404).json({ success: false, message: 'User not found' })
+      throw new ApiError(404, 'User no longer exists.');
     }
 
-    next()
+    // Crucial: Deactivated check
+    if (!req.user.isActive) {
+      throw new ApiError(403, 'Account is deactivated. Please contact support.');
+    }
+
+    next();
   } catch (error) {
-    return res.status(401).json({ success: false, message: 'Not authorized to access this route' })
+    if (error instanceof ApiError) {
+      next(error);
+    } else if (error.name === 'TokenExpiredError') {
+      next(new ApiError(401, 'Token expired. Please login again.'));
+    } else {
+      next(new ApiError(401, 'Not authorized. Invalid token.'));
+    }
   }
-}
+};
 
 export const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `User role "${req.user.role}" is not authorized to access this route`,
-      })
+    if (!req.user) {
+      return next(new ApiError(401, 'Not authorized. User context missing.'));
     }
-    next()
-  }
-}
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ApiError(
+          403,
+          `User role "${req.user.role}" is not authorized to access this route`
+        )
+      );
+    }
+    next();
+  };
+};
 
 export const optionalAuth = async (req, res, next) => {
-  let token = req.cookies?.token
+  let token = req.cookies?.token;
 
   if (!token && req.headers.authorization?.startsWith('Bearer ')) {
-    token = req.headers.authorization.split(' ')[1]
+    token = req.headers.authorization.split(' ')[1];
   }
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET)
-      req.user = await User.findById(decoded.id)
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id);
+      
+      if (user && user.isActive) {
+        req.user = user;
+      } else {
+        req.user = null;
+      }
     } catch (error) {
-      req.user = null
+      req.user = null;
     }
   } else {
-    req.user = null
+    req.user = null;
   }
 
-  next()
-}
+  next();
+};

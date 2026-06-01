@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
@@ -23,7 +23,7 @@ const BlockPrintPattern = () => (
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const { register } = useAuthStore()
+  const { register, isAuthenticated, user } = useAuthStore()
   
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -33,6 +33,14 @@ export default function RegisterPage() {
     confirmPassword: '',
     role: 'buyer' // Default role
   })
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') navigate('/admin/dashboard')
+      else if (user.role === 'artisan') navigate('/seller/dashboard')
+      else navigate('/')
+    }
+  }, [isAuthenticated, user, navigate])
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
 
@@ -49,10 +57,11 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       const registeredUser = await register(formData)
-      toast.success(formData.role === 'artisan' ? "Welcome, Master Artisan." : "Welcome to the Curation.")
-      navigate((registeredUser?.role || formData.role) === 'artisan' ? '/seller/dashboard' : '/products')
+      const isArtisan = (registeredUser?.role || formData.role) === 'artisan';
+      toast.success(isArtisan ? "Welcome, Master Artisan. Please set up your Studio Profile." : "Welcome to the Curation.")
+      navigate(isArtisan ? '/seller/settings' : '/products')
     } catch (error) {
-      toast.error(error.message || "Registration failed")
+      toast.error(error.response?.data?.message || "Registration failed")
     } finally {
       setLoading(false)
     }

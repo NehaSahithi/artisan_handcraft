@@ -1,77 +1,109 @@
-import { create } from 'zustand'
-import API from '../lib/apiClient'
+import { create } from 'zustand';
+import API from '../lib/apiClient';
 
 export const useCartStore = create((set, get) => ({
   items: [],
+  subtotal: 0,
+  totalItems: 0,
   loading: false,
   error: null,
 
   getCart: async () => {
-    set({ loading: true })
+    set({ loading: true, error: null });
     try {
-      const response = await API.get('/cart')
-      set({ items: response.data.cart?.items || [], loading: false })
-      return response.data
+      const response = await API.get('/cart');
+      const cart = response.data.cart || { items: [], subtotal: 0, totalItems: 0 };
+      set({ 
+        items: cart.items, 
+        subtotal: cart.subtotal, 
+        totalItems: cart.totalItems, 
+        loading: false 
+      });
+      return response.data;
     } catch (error) {
-      set({ error: error.response?.data?.message, loading: false })
-      throw error
+      const errorMsg = error.response?.data?.message || 'Failed to fetch cart';
+      set({ error: errorMsg, loading: false });
+      throw error;
     }
   },
 
   addToCart: async (productId, quantity = 1) => {
+    set({ loading: true, error: null });
     try {
-      const response = await API.post('/cart', { productId, quantity })
-      await get().getCart()
-      return response.data
+      const response = await API.post('/cart/add', { productId, quantity });
+      const cart = response.data.cart || { items: [], subtotal: 0, totalItems: 0 };
+      set({ 
+        items: cart.items, 
+        subtotal: cart.subtotal, 
+        totalItems: cart.totalItems, 
+        loading: false 
+      });
+      return response.data;
     } catch (error) {
-      set({ error: error.response?.data?.message })
-      throw error
+      const errorMsg = error.response?.data?.message || 'Failed to add item to cart';
+      set({ error: errorMsg, loading: false });
+      throw error;
     }
   },
 
   updateItem: async (productId, quantity) => {
+    set({ loading: true, error: null });
     try {
-      const response = await API.put(`/cart/${productId}`, { quantity })
-      await get().getCart()
-      return response.data
+      const response = await API.put('/cart/update', { productId, quantity });
+      const cart = response.data.cart || { items: [], subtotal: 0, totalItems: 0 };
+      set({ 
+        items: cart.items, 
+        subtotal: cart.subtotal, 
+        totalItems: cart.totalItems, 
+        loading: false 
+      });
+      return response.data;
     } catch (error) {
-      set({ error: error.response?.data?.message })
-      throw error
+      const errorMsg = error.response?.data?.message || 'Failed to update cart quantity';
+      set({ error: errorMsg, loading: false });
+      throw error;
     }
   },
 
   removeItem: async (productId) => {
+    set({ loading: true, error: null });
     try {
-      const response = await API.delete(`/cart/${productId}`)
-      await get().getCart()
-      return response.data
+      const response = await API.delete(`/cart/${productId}`);
+      const cart = response.data.cart || { items: [], subtotal: 0, totalItems: 0 };
+      set({ 
+        items: cart.items, 
+        subtotal: cart.subtotal, 
+        totalItems: cart.totalItems, 
+        loading: false 
+      });
+      return response.data;
     } catch (error) {
-      set({ error: error.response?.data?.message })
-      throw error
+      const errorMsg = error.response?.data?.message || 'Failed to remove item from cart';
+      set({ error: errorMsg, loading: false });
+      throw error;
     }
   },
 
   clearCart: async () => {
+    set({ loading: true, error: null });
     try {
-      const response = await API.delete('/cart')
-      set({ items: [] })
-      return response.data
+      const response = await API.delete('/cart/clear');
+      set({ items: [], subtotal: 0, totalItems: 0, loading: false });
+      return response.data;
     } catch (error) {
-      set({ error: error.response?.data?.message })
-      throw error
+      const errorMsg = error.response?.data?.message || 'Failed to clear cart';
+      set({ error: errorMsg, loading: false });
+      throw error;
     }
   },
 
   getTotalItems: () => {
-    const items = get().items || []
-    return items.reduce((total, item) => total + item.quantity, 0)
+    return get().totalItems || 0;
   },
 
   getTotalPrice: () => {
-    const items = get().items || []
-    return items.reduce((total, item) => {
-      const price = item.product?.finalPrice ?? item.product?.price ?? item.price ?? 0
-      return total + price * item.quantity
-    }, 0)
+    return get().subtotal || 0;
   },
-}))
+
+  clearError: () => set({ error: null })
+}));

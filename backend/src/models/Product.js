@@ -1,11 +1,13 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
+import { CRAFT_CATEGORIES } from '../constants/categories.js';
 
 const ProductSchema = new mongoose.Schema(
   {
     artisan: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'A product must be linked to an artisan'],
+      index: true,
     },
     name: {
       type: String,
@@ -18,103 +20,121 @@ const ProductSchema = new mongoose.Schema(
       required: [true, 'Please provide a product description'],
       maxlength: [5000, 'Description cannot exceed 5000 characters'],
     },
-    shortDescription: {
-      type: String,
-      maxlength: [300, 'Short description cannot exceed 300 characters'],
-    },
     category: {
       type: String,
       required: [true, 'Please select a product category'],
-      enum: [
-        'Pottery', 'Handloom', 'Woodwork', 'Jewellery', 'Painting',
-        'Embroidery', 'Metalwork', 'Leatherwork', 'Bamboo & Cane',
-        'Stone Carving', 'Terracotta', 'Block Printing', 'Dhokra',
-        'Warli Art', 'Madhubani', 'Pattachitra', 'Other',
-      ],
+      enum: {
+        values: CRAFT_CATEGORIES,
+        message: 'Please select a valid craft category'
+      },
+      index: true,
     },
-    subcategory: { type: String },
     price: {
       type: Number,
       required: [true, 'Please provide a product price'],
-      min: [1, 'Price must be at least 1'],
+      min: [0, 'Price must be positive'],
     },
     discount: {
       type: Number,
       default: 0,
-      min: 0,
-      max: 100,
+      min: [0, 'Discount cannot be less than 0%'],
+      max: [99, 'Discount cannot exceed 99%'],
     },
-    finalPrice: { type: Number, required: true },
+    finalPrice: { 
+      type: Number 
+    },
     images: {
-      type: [String],
+      type: [{
+        url: { type: String, required: true },
+        publicId: { type: String, required: true },
+        alt: { type: String, default: '' }
+      }],
       required: [true, 'Please provide at least one product image'],
       validate: {
         validator: function (v) {
-          return v && v.length >= 1
+          return v && v.length >= 1;
         },
-        message: 'Please provide at least one image',
+        message: 'Please provide at least one product image',
       },
     },
-    craftStory: {
-      type: String,
-      maxlength: [2000, 'Craft story cannot exceed 2000 characters'],
-    },
-    materials: [
-      {
-        name: String,
-        source: String,
-      },
-    ],
-    dimensions: {
-      length: { type: String },
-      width: { type: String },
-      height: { type: String },
-      weight: { type: String },
-    },
-    colors: [String],
-    care: [String],
-    artisanNotes: { type: String },
     stock: {
       type: Number,
+      required: [true, 'Please specify product stock'],
+      min: [0, 'Stock cannot be less than 0'],
       default: 0,
-      min: 0,
     },
-    maxQuantityPerOrder: { type: Number, default: 10 },
+    materials: {
+      type: [String],
+      default: [],
+    },
+    technique: {
+      type: String,
+      trim: true,
+    },
+    craftingTime: {
+      type: String,
+      trim: true,
+    },
+    dimensions: {
+      length: { type: Number, min: 0 },
+      width: { type: Number, min: 0 },
+      height: { type: Number, min: 0 },
+      weight: { type: Number, min: 0 },
+      unit: { type: String, default: 'cm' }
+    },
+    originState: {
+      type: String,
+      trim: true,
+    },
+    originDistrict: {
+      type: String,
+      trim: true,
+    },
+    giCertified: {
+      type: Boolean,
+      default: false,
+    },
+    customizable: {
+      type: Boolean,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     rating: {
-      average: { type: Number, default: 0, min: 0, max: 5 },
+      average: { type: Number, default: 0, min: 0, max: 5, index: true },
       count: { type: Number, default: 0 },
-      total: { type: Number, default: 0 },
     },
-    reviews: [
-      {
-        user: mongoose.Schema.Types.ObjectId,
-        rating: { type: Number, min: 1, max: 5 },
-        comment: String,
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
-    isFeatured: { type: Boolean, default: false },
-    isActive: { type: Boolean, default: true },
-    giCertified: { type: Boolean, default: false },
-    deliveryTime: { type: String, default: '7-14 days' },
-    international: { type: Boolean, default: false },
-    tags: [String],
-    seoKeywords: [String],
+    tags: {
+      type: [String],
+      default: [],
+    }
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
-)
+);
 
+// Pre-validate hook: Calculate finalPrice after applying discount, rounded to 2 decimals
 ProductSchema.pre('validate', function (next) {
   if (this.price !== undefined) {
-    this.finalPrice = this.price - (this.price * (this.discount || 0)) / 100
+    const discountedPrice = this.price - (this.price * (this.discount || 0)) / 100;
+    this.finalPrice = Math.round(discountedPrice * 100) / 100;
   }
-  next()
-})
+  next();
+});
 
-ProductSchema.index({ name: 'text', description: 'text' })
+// Setup compound indexes and text search indices
+ProductSchema.index({ name: 'text', description: 'text' });
+ProductSchema.index({ finalPrice: 1 });
 
-export default mongoose.model('Product', ProductSchema)
+export default mongoose.model('Product', ProductSchema);
