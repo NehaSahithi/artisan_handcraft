@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// Define dynamic base URL using environment variables for Vercel/Render deployment compatibility
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 // Configure Axios with credentials enabled to automatically carry httpOnly cookies
 const API = axios.create({
-  baseURL: '/api',
+  baseURL: API_URL,
   withCredentials: true,
 });
 
