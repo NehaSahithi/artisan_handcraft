@@ -34,6 +34,8 @@ export default function RegisterPage() {
     role: 'buyer' // Default role
   })
 
+  const [errors, setErrors] = useState({})
+
   useEffect(() => {
     if (isAuthenticated && user) {
       if (user.role === 'admin') navigate('/admin/dashboard')
@@ -42,30 +44,86 @@ export default function RegisterPage() {
     }
   }, [isAuthenticated, user, navigate])
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) {
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Full Name is required.";
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters.";
+    } else if (formData.name.trim().length > 50) {
+      newErrors.name = "Name cannot exceed 50 characters.";
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = "Email Address is required.";
+    } else if (!emailRegex.test(formData.email.trim())) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required.";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters.";
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password.";
+    } else if (formData.confirmPassword !== formData.password) {
+      newErrors.confirmPassword = "Passwords do not match.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      return toast.error("Please complete all fields.")
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      return toast.error("Passwords do not match.")
-    }
-
-    setLoading(true)
+    setLoading(true);
     try {
-      const registeredUser = await register(formData)
+      const registeredUser = await register(formData);
       const isArtisan = (registeredUser?.role || formData.role) === 'artisan';
-      toast.success(isArtisan ? "Welcome, Master Artisan. Please set up your Studio Profile." : "Welcome to the Curation.")
-      navigate(isArtisan ? '/seller/settings' : '/products')
+      toast.success(isArtisan ? "Welcome, Master Artisan. Please set up your Studio Profile." : "Welcome to the Curation.");
+      navigate(isArtisan ? '/seller/settings' : '/products');
     } catch (error) {
-      toast.error(error.response?.data?.message || "Registration failed")
+      const errorMsg = error.response?.data?.message || "Registration failed";
+      
+      // Map common backend errors to inline fields
+      if (errorMsg.toLowerCase().includes("email")) {
+        setErrors(prev => ({ ...prev, email: errorMsg }));
+      } else if (errorMsg.toLowerCase().includes("password")) {
+        setErrors(prev => ({ ...prev, password: errorMsg }));
+      } else if (errorMsg.toLowerCase().includes("name")) {
+        setErrors(prev => ({ ...prev, name: errorMsg }));
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex bg-background font-sans selection:bg-primary/20 selection:text-primary">
@@ -138,27 +196,91 @@ export default function RegisterPage() {
             {/* Editorial Style Inputs */}
             <div className="space-y-6">
               <div className="group relative">
-                <User className="absolute left-0 top-3 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" required
-                  className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all" />
+                <User className={`absolute left-0 top-3 w-5 h-5 transition-colors ${errors.name ? 'text-red-500 font-bold' : 'text-muted-foreground group-focus-within:text-primary'}`} />
+                <input 
+                  type="text" 
+                  name="name" 
+                  value={formData.name} 
+                  onChange={handleChange} 
+                  placeholder="Full Name" 
+                  required
+                  className={`w-full bg-transparent border-b-2 outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all ${
+                    errors.name 
+                      ? 'border-red-500 focus:border-red-650' 
+                      : 'border-border focus:border-primary'
+                  }`} 
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-xs font-serif italic mt-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               <div className="group relative">
-                <Mail className="absolute left-0 top-3 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" required
-                  className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all" />
+                <Mail className={`absolute left-0 top-3 w-5 h-5 transition-colors ${errors.email ? 'text-red-500 font-bold' : 'text-muted-foreground group-focus-within:text-primary'}`} />
+                <input 
+                  type="email" 
+                  name="email" 
+                  value={formData.email} 
+                  onChange={handleChange} 
+                  placeholder="Email Address" 
+                  required
+                  className={`w-full bg-transparent border-b-2 outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all ${
+                    errors.email 
+                      ? 'border-red-500 focus:border-red-650' 
+                      : 'border-border focus:border-primary'
+                  }`} 
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-xs font-serif italic mt-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div className="group relative">
-                <Lock className="absolute left-0 top-3 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" required minLength="6"
-                  className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all" />
+                <Lock className={`absolute left-0 top-3 w-5 h-5 transition-colors ${errors.password ? 'text-red-500 font-bold' : 'text-muted-foreground group-focus-within:text-primary'}`} />
+                <input 
+                  type="password" 
+                  name="password" 
+                  value={formData.password} 
+                  onChange={handleChange} 
+                  placeholder="Password" 
+                  required
+                  className={`w-full bg-transparent border-b-2 outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all ${
+                    errors.password 
+                      ? 'border-red-500 focus:border-red-650' 
+                      : 'border-border focus:border-primary'
+                  }`} 
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-xs font-serif italic mt-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               <div className="group relative">
-                <Lock className="absolute left-0 top-3 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm Password" required minLength="6"
-                  className="w-full bg-transparent border-b-2 border-border focus:border-primary outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all" />
+                <Lock className={`absolute left-0 top-3 w-5 h-5 transition-colors ${errors.confirmPassword ? 'text-red-500 font-bold' : 'text-muted-foreground group-focus-within:text-primary'}`} />
+                <input 
+                  type="password" 
+                  name="confirmPassword" 
+                  value={formData.confirmPassword} 
+                  onChange={handleChange} 
+                  placeholder="Confirm Password" 
+                  required
+                  className={`w-full bg-transparent border-b-2 outline-none py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground transition-all ${
+                    errors.confirmPassword 
+                      ? 'border-red-500 focus:border-red-650' 
+                      : 'border-border focus:border-primary'
+                  }`} 
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs font-serif italic mt-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
             </div>
 

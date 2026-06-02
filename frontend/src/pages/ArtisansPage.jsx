@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useArtisanStore } from '../store/artisanStore';
 import Pagination from '../components/common/Pagination';
-import { MapPin, Award, ArrowRight, Paintbrush, Search, Loader2 } from 'lucide-react';
+import { MapPin, Award, ArrowRight, Paintbrush, Search, Loader2, CheckCircle } from 'lucide-react';
 
 // --- REUSABLE HERITAGE ELEMENTS ---
 const LotusMotif = ({ className }) => (
@@ -199,8 +199,9 @@ export default function ArtisansPage() {
                       <div className="p-8 text-center bg-white relative">
                         <Paintbrush className="absolute right-4 bottom-4 w-20 h-20 text-stone-100 opacity-30 transform -rotate-12 group-hover:rotate-0 group-hover:text-primary/5 transition-all duration-700" />
                         
-                        <h2 className="text-2xl font-serif font-bold text-stone-900 mb-1 group-hover:text-primary transition-colors">
+                        <h2 className="text-2xl font-serif font-bold text-stone-900 mb-1 group-hover:text-primary transition-colors flex items-center justify-center gap-2">
                           {artisan.shopName || artisan.name}
+                          {artisan.isVerified && <CheckCircle className="w-5 h-5 text-emerald-600" title="Verified Karigar" />}
                         </h2>
                         <p className="text-stone-500 font-serif text-sm italic mb-6">by {artisan.user?.name || artisan.name}</p>
                         

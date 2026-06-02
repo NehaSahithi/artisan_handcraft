@@ -127,10 +127,6 @@ export const createProduct = async (req, res) => {
     throw new ApiError(403, 'Studio Profile not found. Please complete profile onboarding before listing products.');
   }
 
-  if (!profile.isVerified || profile.kyc?.status !== 'verified') {
-    throw new ApiError(403, 'Your studio profile has not been verified yet. Product creation is locked until KYC verification approval.');
-  }
-
   const allowedData = pickAllowedProductFields(req.body);
   allowedData.artisan = req.user._id;
 
@@ -171,10 +167,6 @@ export const updateProduct = async (req, res) => {
     const profile = await ArtisanProfile.findOne({ user: req.user._id });
     if (!profile) {
       throw new ApiError(403, 'Studio Profile not found. Please complete profile onboarding before updating products.');
-    }
-
-    if (!profile.isVerified || profile.kyc?.status !== 'verified') {
-      throw new ApiError(403, 'Your studio profile has not been verified yet. Product modifications are locked until KYC verification approval.');
     }
   }
 

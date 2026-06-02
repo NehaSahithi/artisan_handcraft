@@ -52,8 +52,8 @@ const whitelistedProfileFields = (source) => {
 export const getAllArtisans = async (req, res) => {
   const { state, craft, search, page = 1, limit = 12 } = req.query;
 
-  // Public listings only show verified and active profiles
-  const filter = { isVerified: true };
+  // Public listings show all artisan profiles
+  const filter = {};
 
   if (state) {
     filter['location.state'] = state;
@@ -246,7 +246,7 @@ export const updateShopMedia = async (req, res) => {
       try {
         await cloudinary.uploader.destroy(`karigar/shops/${pubId}`);
       } catch (err) {
-        console.log(err);
+        console.error(err);
       }
     }
     profile.shopLogo = req.files.shopLogo[0].path;
@@ -260,7 +260,7 @@ export const updateShopMedia = async (req, res) => {
       try {
         await cloudinary.uploader.destroy(`karigar/shops/${pubId}`);
       } catch (err) {
-        console.log(err);
+        console.error(err);
       }
     }
     profile.shopBanner = req.files.shopBanner[0].path;
@@ -307,7 +307,7 @@ export const getDashboardStats = async (req, res) => {
 // @route   GET /api/artisans/featured
 // @access  Public
 export const getFeaturedArtisans = async (req, res) => {
-  const artisans = await ArtisanProfile.find({ isFeatured: true, isVerified: true })
+  const artisans = await ArtisanProfile.find({ isFeatured: true })
     .populate({ path: 'user', select: 'name avatar' })
     .limit(6);
 
@@ -321,7 +321,7 @@ export const getFeaturedArtisans = async (req, res) => {
 // @route   GET /api/artisans/states
 // @access  Public
 export const getStatesList = async (req, res) => {
-  const states = await ArtisanProfile.distinct('location.state', { isVerified: true });
+  const states = await ArtisanProfile.distinct('location.state');
   res.status(200).json({
     success: true,
     states: states.sort()

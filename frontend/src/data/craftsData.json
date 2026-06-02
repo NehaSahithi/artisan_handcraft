@@ -1,0 +1,846 @@
+{
+    "Andhra Pradesh": [
+        {
+            "name": "Kondapalli Toys (GI)",
+            "materials": "Tella Poniki wood (softwood), tamarind seed paste, enamel paints",
+            "description": "Lightweight, hand-carved wooden toys depicting rural life, mythological figures, and animals.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/44/Kondapalli_Toys_1.jpg"
+        },
+        {
+            "name": "Srikalahasti Kalamkari (GI)",
+            "materials": "Cotton fabric, bamboo pen (kalam), natural plant dyes, milk",
+            "description": "A freehand drawing textile art style where religious themes and epics are painted directly onto fabric.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/Kalamkari_Srikalahasti.jpg"
+        },
+        {
+            "name": "Machilipatnam Kalamkari (GI)",
+            "materials": "Cotton fabric, hand-carved teakwood blocks, vegetable dyes",
+            "description": "Block-printed textile art displaying complex Persian-influenced floral patterns, trees of life, and borders.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Pedana_Kalamkari_Block_Printing.jpg"
+        },
+        {
+            "name": "Etikoppaka Toys (GI)",
+            "materials": "Ankudu wood (softwood), natural lacquer, organic seed and root dyes",
+            "description": "Turned-wood toys and artifacts coated with brilliant, non-toxic colored lacquer resins.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Etikoppaka_wooden_toys.jpg"
+        },
+        {
+            "name": "Dharmavaram Silk Sarees (GI)",
+            "materials": "Pure mulberry silk, gold and silver zari threads",
+            "description": "Heavy wedding sarees recognized by broad solid borders and shaded pallus created by dual-tone weaving.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/5/53/Dharmavaram_Silk_Saree_Display.jpg"
+        }
+    ],
+    "Telangana": [
+        {
+            "name": "Cheriyal Scroll Painting (GI)",
+            "materials": "Khadi cotton cloth, tamarind seed paste, white mud, natural dyes",
+            "description": "A stylized narrative art style painted on long fabric scrolls to illustrate local folklore and epics.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/2/22/Cheriyal_scroll_painting_close.jpg"
+        },
+        {
+            "name": "Pembarthi Metal Craft (GI)",
+            "materials": "Brass sheets, copper sheets",
+            "description": "Exquisite sheet metal embossing work historically used to ornament temple chariots, doors, and individual shields.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/46/Pembarthi_Metal_Craft_Showpiece.jpg"
+        },
+        {
+            "name": "Bidriware (GI)",
+            "materials": "Zinc and Copper alloy, pure silver wire, Bidar fort soil",
+            "description": "A striking metal handicraft where fine silver wires are inlaid into a chemically blackened zinc-copper base.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/d/de/Bidriware_Vase_with_Silver_Inlay.jpg"
+        },
+        {
+            "name": "Pochampally Ikat (GI)",
+            "materials": "Mulberry silk or cotton yarn, natural and synthetic dyes",
+            "description": "A precision tie-dye weaving method (Chakka Jamdani) creating bold geometric patterns across the fabric warp and weft.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Pochampally_Ikat_Saree_Texture.jpg"
+        },
+        {
+            "name": "Nirmal Toys and Paintings (GI)",
+            "materials": "Burgu wood (softwood), luppa (herbal paste), oil colors",
+            "description": "Traditional wooden toys and furniture painted with fine gold-hued lacquer finishes detailing classical themes.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Nirmal_Toys_Collection.jpg"
+        }
+    ],
+    "Karnataka": [
+        {
+            "name": "Channapatna Toys (GI)",
+            "materials": "Ivory wood (Aale mara), vegetable dyes, natural lacquer",
+            "description": "Perfectly rounded wooden toys polished on high-speed lathes using non-toxic lacquer extracted from cacti seeds.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Channapatna_Toys_Stack.jpg"
+        },
+        {
+            "name": "Mysore Sandalwood Carving",
+            "materials": "Santalum album (Sandalwood)",
+            "description": "Highly intricate relief carving on aromatic sandalwood, producing delicate figurines and structural caskets.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Sandalwood_Carving_Karnataka.jpg"
+        },
+        {
+            "name": "Bidriware (Bidar) (GI)",
+            "materials": "Zinc-copper base alloy, silver sheets, ammonium chloride soil",
+            "description": "The geographical source craft of silver inlay work blackened using centuries-old subterranean soil recipes.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/a/af/Bidri_Craft_Inlay_Process.jpg"
+        },
+        {
+            "name": "Kinhal Toys (GI)",
+            "materials": "Polki wood, liquid gold stencil foil, kitta (sawdust paste)",
+            "description": "Ornate wooden models of deities and royal birds assembled with specialized paste joints and gold plating.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Kinhal_Craft_Deity_Idol.jpg"
+        },
+        {
+            "name": "Navalgund Durries (GI)",
+            "materials": "Coarse cotton yarn, floor upright looms",
+            "description": "Rare, tightly woven geometric floor rugs featuring complex chessboards and bird designs made by hand without mechanical combs.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/3/30/Navalgund_Jamkhana_Rug.jpg"
+        }
+    ],
+    "Kerala": [
+        {
+            "name": "Aranmula Kannadi (GI)",
+            "materials": "Copper and Tin alloy glass-less mirror, brass framing",
+            "description": "A highly secretive, polished metallurgical alloy mirror giving zero secondary distortion, unlike silvered glass.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Aranmula_kannadi.jpg"
+        },
+        {
+            "name": "Screw Pine Craft (GI)",
+            "materials": "Leaves of the Screw Pine plant (Pandanus), natural dyes",
+            "description": "Traditional weaving of split, cured screw pine leaves into fine straw mats, bags, and household containers.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Screw_Pine_Mat_Weaving_Kerala.jpg"
+        },
+        {
+            "name": "Maddalam and Chenda Making",
+            "materials": "Jackwood trunk core, buffalo skin, cowhide, paste strings",
+            "description": "Precision structural woodwork and leather curing to forge heavy classical percussion instruments used in Kathakali.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Chenda_Instrument_Kerala.jpg"
+        },
+        {
+            "name": "Balaramapuram Sarees & Fine Cotton (GI)",
+            "materials": "Superfine grey cotton cotton yarn, pure gold zari threads",
+            "description": "Traditional handloom cream-colored fabrics woven with identical ornamental motifs appearing on both faces.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Balaramapuram_Handloom_Weaving.jpg"
+        }
+    ],
+    "Tamil Nadu": [
+        {
+            "name": "Tanjore Painting (GI)",
+            "materials": "Plywood base, canvas, semi-precious stones, pure gold foil, lime paste",
+            "description": "Iconic religious relief paintings featuring flat surfaces layered with glittering 22k gold leaf accents.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/18/Thanjavur_Painting_Deity.jpg"
+        },
+        {
+            "name": "Swamimalai Bronze Icons (GI)",
+            "materials": "Copper, Zinc, Lead, Tin alloy (Panchaloha), beeswax, fine clay",
+            "description": "Lost-wax cast bronze sculptures forged following strict iconometric rules defined in ancient Shilpa Shastras.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Swamimalai_Bronze_Sculpture.jpg"
+        },
+        {
+            "name": "Pattamadai Mats (GI)",
+            "materials": "Korai grass reeds, cotton silk threads",
+            "description": "Fine mats woven so split-thin from local river grass that they resemble silk fabric and can be folded completely.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/5/58/Pattamadai_Fine_Korai_Mat.jpg"
+        },
+        {
+            "name": "Nachiarkoil Brass Lamp (GI)",
+            "materials": "Brass scrap, casting sand molds",
+            "description": "Hand-cast tiered brass lamps (Kuthuvilakku) accented with complex hollow ornamental spires and bird toppers.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/d/de/Nachiyar_Koil_Traditional_Lamp.jpg"
+        },
+        {
+            "name": "Toda Embroidery (GI)",
+            "materials": "Coarse white cotton canvas, thick red and black wool thread",
+            "description": "Distinctive geometric embroidery done entirely by memory from the reverse side, mimicking woven textures.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Toda_Embroidery_Shawl.jpg"
+        }
+    ],
+    "Andaman & Nicobar": [
+        {
+            "name": "Andaman Shell Craft",
+            "materials": "Turbo, Trochus, and Mother-of-Pearl sea shells",
+            "description": "Hand-ground and polished marine shells fashioned into functional jewelry, table lamps, and fine inlay tokens.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/2/23/Shell_Craft_Display_Andaman.jpg"
+        },
+        {
+            "name": "Nicobarese Cane Basketry",
+            "materials": "Local wild forest cane splits, bamboo ribbons",
+            "description": "Extremely sturdy, deep nested storage baskets hand-woven natively by the Nicobarese tribal groups.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Tribal_Cane_Basketry.jpg"
+        }
+    ],
+    "Lakshadweep": [
+        {
+            "name": "Lakshadweep Coir Crafts",
+            "materials": "Coconut husk fibers, sea water retting pits",
+            "description": "Hand-twisted golden coir mats, ropes, and dense corridor runners utilizing specialized marine-cured fibers.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Coir_Yarn_Spinning.jpg"
+        },
+        {
+            "name": "Coral Shell Carving",
+            "materials": "Fossilized beach shells, hand chisels",
+            "description": "Artisanal hand-etching on naturally cast-away beach shells and hard lime matrices to create local souvenirs.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Polished_Marine_Shells.jpg"
+        }
+    ],
+    "Puducherry": [
+        {
+            "name": "Terracotta of Vilianur (GI)",
+            "materials": "Local pond clay, river silt, natural mineral washes",
+            "description": "Ornate terracotta pottery and large garden statues displaying stylized figures of structural deities.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/2/29/Puducherry_Terracotta_Art.jpg"
+        },
+        {
+            "name": "Kora Grass Weaving",
+            "materials": "Kora river reeds, cotton threads",
+            "description": "Locally woven table-mats and floor coverings colored using eco-friendly natural plant dyes.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/8/87/Kora_Grass_Weave_Texture.jpg"
+        }
+    ],
+    "Chandigarh": [
+        {
+            "name": "Le Corbusier Pierre Jeanneret Furniture",
+            "materials": "Solid teakwood, hand-woven Indian cane splits",
+            "description": "Mid-century modernist furniture pieces (like V-leg chairs) handmade by local Punjabi carpenters following historic architectural blueprints.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/a/af/Jeanneret_Committee_Chair_Chandigarh.jpg"
+        },
+        {
+            "name": "Phulkari Adaptation",
+            "materials": "Khaddar, spun silk thread",
+            "description": "Hand-embroidered winter fabrics practiced locally in surrounding rural enclaves following traditional migratory patterns.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/7/71/Contemporary_Phulkari_design.jpg"
+        }
+    ],
+    "Dadra & Nagar Haveli and Daman & Diu": [
+        {
+            "name": "Warli Painting Adaptation",
+            "materials": "Rice paste mixture, red ochre canvas mud boards",
+            "description": "Tribal wall artwork sharing cultural roots with surrounding border regions, detailing community lifestyle patterns.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/0/03/Warli_Painting_Tribal_Art.jpg"
+        },
+        {
+            "name": "Tortoiseshell and Ivory Style Carving",
+            "materials": "Polishing resins, synthetic replica horns, dense wood cores",
+            "description": "Historic decorative carving style native to Diu, now adapted using eco-friendly horn or synthetic resin variants.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/42/Carved_Decorative_Casket.jpg"
+        }
+    ],
+    "Bihar": [
+        {
+            "name": "Madhubani Painting (GI)",
+            "materials": "Handmade paper, canvas, natural pigments, twigs, matchsticks",
+            "description": "Also known as Mithila art, this traditional painting style uses line drawings filled with bright, natural colors to depict mythology and nature.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Madhubani_painting_9.jpg"
+        },
+        {
+            "name": "Sujini Embroidery (GI)",
+            "materials": "Layered old cotton fabric, colorful cotton threads",
+            "description": "A traditional quilt embroidery technique that uses simple running stitches to depict narrative scenes of social issues and rural life.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/13/Sujini_embroidery_craft_of_Bihar.jpg"
+        },
+        {
+            "name": "Sikki Grass Craft (GI)",
+            "materials": "Sikki grass, golden wild grass, organic dyes",
+            "description": "An ancient craft where a specific wild golden grass is dried, dyed, and woven into sturdy, artistic containers, toys, and mats.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/11/Sikki_grass_products_Bihar.jpg"
+        }
+    ],
+    "Jharkhand": [
+        {
+            "name": "Sohrai Art (GI)",
+            "materials": "Mud walls, natural earth soils (ochre, black, white mud), chewing sticks",
+            "description": "A ritualistic wall painting art practiced by tribal women during harvest festivals, featuring bold lines, zoomorphic forms, and plant motifs.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/7/77/Sohrai_Painting_Jharkhand.jpg"
+        },
+        {
+            "name": "Paitkar Painting",
+            "materials": "Scrolls of paper or leaves, natural tree-leaf and stone pigments",
+            "description": "One of the oldest tribal scroll-painting traditions in India, used by cultural storytellers to illustrate life after death and tribal legends.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Paitkar_painting_Jharkhand.jpg"
+        }
+    ],
+    "West Bengal": [
+        {
+            "name": "Bankura Terracotta (GI)",
+            "materials": "Local alluvial clay, natural kilns",
+            "description": "Renowned for its distinctive, stylized terracotta horses and elephants characterized by elongated ears and hollow structures.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Terracotta_Horeses_at_Bishnupur.jpg"
+        },
+        {
+            "name": "Dokra Metal Craft (GI)",
+            "materials": "Brass scrap, beeswax, fine clay, resin",
+            "description": "An ancient non-ferrous lost-wax casting technique used to fashion intricate primitive figurines and rustic home decor.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/0/06/Bikna_Dhokra_Art_Craft.jpg"
+        },
+        {
+            "name": "Madurkathi Mat Weaving (GI)",
+            "materials": "Madur grass reeds, cotton threads",
+            "description": "Traditional organic floor mats woven meticulously from rhizome reeds, known for their coolness and resilience to tropical climates.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Sabang_Madur_Kathi_weaving.jpg"
+        }
+    ],
+    "Odisha": [
+        {
+            "name": "Pattachitra Painting (GI)",
+            "materials": "Cloth canvas, tamarind seed paste, chalk powder, mineral colors",
+            "description": "A highly detailed, structured scroll painting tradition executing mythological narratives with fine lines and bold borders.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Pattachitra_painting_Odisha.jpg"
+        },
+        {
+            "name": "Pipili Applique Work (GI)",
+            "materials": "Cotton cloth sheets, mirrors, embroidery threads",
+            "description": "Artistic cutting and stitching of colorful fabric shapes onto a base cloth, heavily used for umbrellas and canopies during the Rath Yatra.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Pipli_applique_crafts_odisha.jpg"
+        },
+        {
+            "name": "Cuttack Silver Filigree - Tarakasi (GI)",
+            "materials": "Pure silver wires, silver granules",
+            "description": "An extremely delicate metal craft where fine silver wire is beaten and curled into complex lace-like jewelry and models.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Silver_Filigree_Tarakasi_Cuttack.jpg"
+        }
+    ],
+    "Sikkim": [
+        {
+            "name": "Choktsee Tables",
+            "materials": "Tooni wood (Red Cedar), oil paints, gold polish",
+            "description": "Exquisitely hand-carved, foldable wooden tables boasting dense Tibetan Buddhist symbolic motifs and relief patterns.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/15/Sikkimese_Choktsee_Wood_Carving.jpg"
+        },
+        {
+            "name": "Thangka Painting",
+            "materials": "Cotton canvas, gold dust, mineral colors, yak-skin glue",
+            "description": "Detailed sacred scroll paintings illustrating Buddhist deities, mandalas, and philosophy, demanding strict geometric proportions.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/6/67/Tibetan_Thangka_Sikkim.jpg"
+        }
+    ],
+    "Assam": [
+        {
+            "name": "Muga Silk Weaving (GI)",
+            "materials": "Golden Muga silk yarn",
+            "description": "A prestigious, naturally shimmering golden silk handloom textile that increases in luster with every hand wash.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Muga_Silk_Sari_Assam.jpg"
+        },
+        {
+            "name": "Majuli Mask Making",
+            "materials": "Bamboo frames, clay, cow dung, cloth, natural colors",
+            "description": "Traditional dramatic masks hand-molded over bamboo skeletons in the Vaishnavite monasteries (Satras) of Majuli island.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Majuli_mask_making_art.jpg"
+        },
+        {
+            "name": "Assam Bamboo and Cane Craft",
+            "materials": "Indigenous bamboo species (Jati, Bhaluka), rattan cane",
+            "description": "A widespread utility craft delivering fine woven storage baskets, structural panels, furniture, and the iconic Jaapi sunshade hat.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/3/30/Assamese_Japi_and_Bamboo_Craft.jpg"
+        }
+    ],
+    "Arunachal Pradesh": [
+        {
+            "name": "Monpa Handmade Paper (GI)",
+            "materials": "Bark of the Shugu Sheng tree (Daphne plant)",
+            "description": "A centuries-old tree-free papermaking process resulting in a fibrous, moth-resistant texture favored for Buddhist scriptures.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Monpa_handmade_paper_making.jpg"
+        },
+        {
+            "name": "Apatani Textile Weaving (GI)",
+            "materials": "Cotton yarn, loin looms (backstrap loom)",
+            "description": "Woven fabrics featuring geometric zig-zag patterns and bold, dark stripes, central to tribal identity and ceremonies.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Apatani_Weaver_Arunachal.jpg"
+        }
+    ],
+    "Meghalaya": [
+        {
+            "name": "Milliang Mat (Tlieng Weaving)",
+            "materials": "Screwpine leaves, local cane splits",
+            "description": "Highly complex, gloss-finished woven mats that are exceptionally durable and waterproof, native to the Khasi hills.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/8/87/Khasi_mat_weaving_Meghalaya.jpg"
+        },
+        {
+            "name": "Ryndia Silk Weaving",
+            "materials": "Eri silk yarn, plant dyes",
+            "description": "An eco-friendly, warm silk fabric harvested without killing the silkworms, hand-woven on traditional floor looms.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/a/af/Eri_Silk_Weaving_Meghalaya.jpg"
+        }
+    ],
+    "Nagaland": [
+        {
+            "name": "Naga Shawls (GI)",
+            "materials": "Raw cotton, wool, backstrap loom setup",
+            "description": "Deeply symbolic textiles woven with specific black, red, and blue stripes that indicate the social status and achievements of the wearer.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/6/63/Naga_tribal_shawls.jpg"
+        },
+        {
+            "name": "Naga Bamboo Mug Craft",
+            "materials": "Green bamboo nodes, cane strips, wood sap colors",
+            "description": "Hand-carved drinking mugs frequently decorated with etched geometric carvings or painted motifs of warrior traditions.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Naga_bamboo_craft_mug.jpg"
+        }
+    ],
+    "Manipur": [
+        {
+            "name": "Longpi Black Pottery",
+            "materials": "Black serpentinite stone, local weathered clay",
+            "description": "A unique, wheel-less pottery technique where items are hand-formed from ground rock, fired, and polished shiny with local leaves.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Longpi_pottery_Manipur.jpg"
+        },
+        {
+            "name": "Shaphee Lanphee (GI)",
+            "materials": "Cotton base cloth, red/black/yellow wool yarns",
+            "description": "A traditional embroidered fabric featuring stylized stars, horses, and elephants, historically gifted to brave warriors by the king.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Shaphee_Lanphee_textile.jpg"
+        }
+    ],
+    "Mizoram": [
+        {
+            "name": "Puan Handloom Weaving (GI)",
+            "materials": "Cotton yarn, backstrap loom",
+            "description": "Traditional Mizo textiles possessing intricate horizontal diamond patterns and warp-stripes essential for weddings and dances.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/41/Mizo_Puan_weaving.jpg"
+        },
+        {
+            "name": "Hnatial Bamboo Basketry",
+            "materials": "Local wild bamboo fibers, cane splits",
+            "description": "Finely split, smoke-dried basketry presenting highly intricate structural diagonal weaves designed for mountain farming.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Mizo_bamboo_baskets.jpg"
+        }
+    ],
+    "Tripura": [
+        {
+            "name": "Tripura Bamboo Screen and Mat Craft",
+            "materials": "Muli bamboo, dyed cane splints",
+            "description": "Artistic screens, partitions, and fine floor mats woven so delicately that the panels look almost canvas-soft.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Tripura_bamboo_handicrafts.jpg"
+        },
+        {
+            "name": "Rignai Weaving",
+            "materials": "Cotton warp threads, metallic embellishments",
+            "description": "An indigenous lower-garment textile woven with localized 'Chunya' patterns distinct to individual tribal clans.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/3/30/Tripuri_traditional_attire_weaving.jpg"
+        }
+    ],
+    "Rajasthan": [
+        {
+            "name": "Jaipur Blue Pottery (GI)",
+            "materials": "Quartz powder, raw glass, multani mitti, gum, water",
+            "description": "An exquisite clay-free traditional pottery style painted with cobalt blue dyes and unique floral or animal motifs.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Blue_pottery_from_Jaipur_4.jpg"
+        },
+        {
+            "name": "Kathputli of Rajasthan (GI)",
+            "materials": "Mango wood (Ardu wood), cotton threads, colorful fabrics",
+            "description": "Traditional wooden string puppets handcrafted by the Bhatt community, highly celebrated in local folk theater and storytelling.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Kathputli_%28Puppet%29_of_Rajasthan.jpg"
+        },
+        {
+            "name": "Sanganeri Hand Block Printing (GI)",
+            "materials": "Cambric cotton, carved teakwood blocks, natural dyes",
+            "description": "Delicate fabric printing known for fine, detailed floral motifs (butas) stamped neatly on an off-white background.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/48/Wooden_Block_prints_Jaipur.jpg"
+        },
+        {
+            "name": "Thewa Artwork (GI)",
+            "materials": "23-karat pure gold foil, multi-colored treated glass (Belgian glass)",
+            "description": "An ultra-fine jewelry craft involving the fusion of highly intricate, hand-carved patterned gold foil sheets onto molten colored glass.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Rajasthani_Thewa_Technique_Pendant.jpg"
+        },
+        {
+            "name": "Molela Terracotta Clay Work (GI)",
+            "materials": "Local clay, donkey dung, natural mineral glazes",
+            "description": "Hollow, flat terracotta relief plaques depicting folk deities and village scenes, crafted by hand along the Banas riverbed.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/7/70/KALA_GRAM.jpg"
+        },
+        {
+            "name": "Kota Doria Weaving (GI)",
+            "materials": "Fine Cotton, Mulberry Silk, real Zari threads",
+            "description": "Lightweight, translucent handloom fabric characterized by distinct woven square checkers called 'khats'.",
+            "image": "https://img.indiahandmade.com/catalog/product/cache/dee0bc41489afb86ae85561eae1bc64e/1/6/1687501309531_dsc_0055.jpg"
+        }
+    ],
+    "Gujarat": [
+        {
+            "name": "Patan Patola (GI)",
+            "materials": "Pure mulberry silk, natural organic vegetable dyes",
+            "description": "The absolute pinnacle of double-ikat weaving, where both warp and weft threads are tie-dyed identically before loom assembly.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Gujarat_patola.jpg"
+        },
+        {
+            "name": "Kutch Embroidery (GI)",
+            "materials": "Cotton or silk fabric, vibrant silk threads, tiny mirrors (abhla)",
+            "description": "Intricate tribal needlework variations (Ahir, Rabari, Mutwa) incorporating mirror work into bright geometric patterns.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Embroidered_hanging%2C_Kutch_%28western_India.jpg"
+        },
+        {
+            "name": "Rogan Painting (GI)",
+            "materials": "Castor oil residue, natural mineral pigments, metal stylus",
+            "description": "A rare art where thick, gel-like boiled castor paste is stretched into fine threads via a stylus to paint freehand on fabric.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Rogan_art_by_ashish_kansara_from_Madhapar.jpg"
+        },
+        {
+            "name": "Sankheda Furniture (GI)",
+            "materials": "Teakwood, lacquer resin, metallic gold/maroon pigments",
+            "description": "Vibrant wooden furniture turned on hand-lathes, coated with natural lacquer, and painted with fine ornamental patterns.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Sankheda_furniture_corner_table.jpg"
+        },
+        {
+            "name": "Pithora Painting (GI)",
+            "materials": "Wall plaster, milk, ghee, local pigments",
+            "description": "A highly sacred ritualistic wall painting style of the Rathwa and Bhil tribes, featuring dynamic depictions of horses and nature.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Pithora_Painting_at_Crafts_Museum.jpg"
+        }
+    ],
+    "Maharashtra": [
+        {
+            "name": "Paithani Sarees & Fabrics (GI)",
+            "materials": "Fine mulberry silk, pure silver and gold zari wires",
+            "description": "Luxury handloom sarees defined by an oblique square-design border and an opulent pallu featuring tapestry-weave peacocks.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/0/01/Parrot_Peacock_border_paithani_saree.jpg"
+        },
+        {
+            "name": "Warli Painting (GI)",
+            "materials": "Mud-plaster base, rice paste, water, bamboo sticks",
+            "description": "A minimalist indigenous tribal art form using geometric circles, triangles, and squares to portray community dances and harvests.",
+            "image": "https://www.memeraki.com/cdn/shop/articles/Warli_Painting_800x.jpg"
+        },
+        {
+            "name": "Kolhapuri Chappal (GI)",
+            "materials": "Bag-tanned buffalo and goat leather, seed pods for coloration",
+            "description": "Sturdy, completely hand-stitched leather slip-ons embellished with braided leather cords and a signature side flap.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/45/Kolhapuri_chappals.jpg"
+        }
+    ],
+    "Goa": [
+        {
+            "name": "Goan Azulejos (GI)",
+            "materials": "Ceramic tiles, metallic oxides, glaze",
+            "description": "Hand-painted, blue-and-white vitrified ceramic tiles reflecting a distinct Portuguese-influenced colonial artistic heritage.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Adding_some_blue_to_my_collection_azulejos.jpg"
+        },
+        {
+            "name": "Kunbi Saree",
+            "materials": "Coarse cotton, indigenous vegetable dyes",
+            "description": "Traditional checks woven natively by the tribal Kunbi community, highly sturdy and built for historic agricultural work.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/9/92/GoaKunbiDance.jpg"
+        }
+    ],
+    "Madhya Pradesh": [
+        {
+            "name": "Chanderi Fabric (GI)",
+            "materials": "Degummed silk warp, fine cotton weft, gold zari",
+            "description": "An extraordinarily lightweight, sheer, and glossy handloom fabric woven with intricate boutique booties.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Chanderi_Silk_Sari_outside_a_village_home_in_Pranpur._%287045778685%29.jpg"
+        },
+        {
+            "name": "Maheshwari Handloom (GI)",
+            "materials": "Mercerized cotton, mulberry silk strands",
+            "description": "Elegant textiles known for their minimalist reversible geometric borders inspired by the stone carvings of Maheshwar Fort.",
+            "image": "https://img.indiahandmade.com/catalog/product/cache/dee0bc41489afb86ae85561eae1bc64e/i/m/img_20230713_150825.jpg"
+        },
+        {
+            "name": "Bagh Prints (GI)",
+            "materials": "Cotton or silk fabric, river water, alizarin, iron rust blocks",
+            "description": "A sophisticated block-printing technique relying on extensive river-washing steps and natural red/black vegetable pigments.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/A_Traditional_Bagh_Print_%28Hand_Block_Print%29_Craft_in_India.jpg"
+        },
+        {
+            "name": "Gond Painting (GI)",
+            "materials": "Handmade canvas, acrylics or natural sap, fine lining pens",
+            "description": "A vivid tribal art form using dense patterns of dots, lines, and dashes to delineate folklore, animals, and local nature systems.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Gond_Painting.JPG"
+        }
+    ],
+    "Chhattisgarh": [
+        {
+            "name": "Bastar Dhokra Bell Metal (GI)",
+            "materials": "Brass/Bronze scrap, beeswax, riverbed sand, clay",
+            "description": "An ancient, non-ferrous lost-wax casting craft used by tribal groups to forge hollow, textured tribal figurines.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/10/Dokra_from_tribes_of_Bastar_DSCN1172_01.jpg"
+        },
+        {
+            "name": "Bastar Iron Craft (GI)",
+            "materials": "Wrought iron, charcoal kilns, anvil hammers",
+            "description": "Minimalist, elongated iron artifacts and lamps forged from scrap iron by the historic Agaria blacksmith community.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Artist_from_Agariya_tribe_of_Madhya_Pradesh_IMG_8561.jpg"
+        }
+    ],
+    "Jammu & Kashmir": [
+        {
+            "name": "Pashmina Shawl (GI)",
+            "materials": "Fine Cashmere wool (Changthangi goat)",
+            "description": "Exceptionally soft, hand-spun and woven luxury shawls known for their warmth and lightness.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/8/87/Kashmiri_Embroidery.jpg"
+        },
+        {
+            "name": "Kani Shawl (GI)",
+            "materials": "Pashmina yarn, wooden eyeless needles",
+            "description": "Intricately woven shawls where patterns are created loom-stage using color-coded wooden sticks.",
+            "image": "https://pashmina.vtexassets.com/arquivos/ids/182967/The-Legacy-Kani-Pashmina-Shawl.jpg"
+        },
+        {
+            "name": "Kashmir Papier-M\u00e2ch\u00e9 (GI)",
+            "materials": "Paper pulp, rice glue, natural colors, gold leaf",
+            "description": "Delicate decorative objects featuring intricate, vibrant Persian-influenced floral painting.",
+            "image": "http://www.memeraki.com/cdn/shop/articles/640px-Papier_mache_goods__Kashmir__8141417742_1200x1200.jpg"
+        },
+        {
+            "name": "Walnut Wood Carving (GI)",
+            "materials": "Kashmiri Walnut wood",
+            "description": "Deep undercut and relief carving used on furniture and decorative items, featuring floral motifs.",
+            "image": "http://www.sahapedia.org/sites/default/files/styles/sp_page_banner_800x800/public/A-polisher-%28roshangaar%29-at-work.jpg"
+        },
+        {
+            "name": "Khatamband (GI)",
+            "materials": "Fir or Deodar wood",
+            "description": "An architectural woodwork craft where geometric wooden pieces are fitted together without nails for ceilings.",
+            "image": "https://gaatha.org/wp-content/uploads/2016/07/A-Puzzle-to-solve.jpg"
+        },
+        {
+            "name": "Basohli Painting (GI)",
+            "materials": "Paper, natural pigments, beetle wings",
+            "description": "Distinctive Pahari paintings characterized by bold colors, facial profiles, and depictions of deities.",
+            "image": "https://www.memeraki.com/cdn/shop/files/Harmony-of-Hues-A-Womans-Elegance-Amidst-Lush-Green-Landscapes-Basohli-Painting-by-Aastha-Billowria---Shivakshi-Sharma-2_1024x.jpg"
+        },
+        {
+            "name": "Willow Wicker (Shaakhsaazi)",
+            "materials": "Willow reeds (Guch)",
+            "description": "Traditional basketry and furniture weaving providing essential livelihood in the Kashmir valley.",
+            "image": "https://miro.medium.com/0*KrpSVJfn4YUKcZpy.jpg"
+        },
+        {
+            "name": "Sozni Embroidery (GI)",
+            "materials": "Pashmina or wool base, silk/cotton thread",
+            "description": "Extremely fine needlework using satin stitch, frequently employed to decorate Pashmina shawls.",
+            "image": "https://cdn.shopify.com/s/files/1/0454/4541/5073/files/1234.jpg"
+        }
+    ],
+    "Himachal Pradesh": [
+        {
+            "name": "Kullu Shawl (GI)",
+            "materials": "Merino wool, Angora, local sheep wool",
+            "description": "Handwoven shawls defined by their bright, geometric, multi-colored borders against a plain background.",
+            "image": "https://img.indiahandmade.com/catalog/product/cache/dee0bc41489afb86ae85561eae1bc64e/i/m/img20230225180404.jpg"
+        },
+        {
+            "name": "Kangra Painting (GI)",
+            "materials": "Handmade paper, mineral and vegetable colors",
+            "description": "Lyrical and naturalistic Pahari miniature paintings heavily inspired by the Radha-Krishna lore.",
+            "image": "https://www.memeraki.com/cdn/shop/files/KG9.2_2400x.jpg"
+        },
+        {
+            "name": "Chamba Rumal (GI)",
+            "materials": "Unbleached muslin/khaddar, untwisted silk thread",
+            "description": "Double-sided pictorial embroidery historically used to cover offerings to deities or as royal gifts.",
+            "image": "http://www.sahapedia.org/sites/default/files/styles/sp_page_banner_800x800/public/Banner%20Image%20Module%20Introduction.JPG"
+        },
+        {
+            "name": "Kinnauri Shawl (GI)",
+            "materials": "Indigenous wool",
+            "description": "Heavy winter textiles renowned for complex, central-Asian-influenced geometric motifs.",
+            "image": "https://bhutticoshawls.com/cdn/shop/articles/12_b2cfc4c8-d691-4dfa-b1ae-28fee166f09d.jpg"
+        },
+        {
+            "name": "Lahaul Socks & Gloves (GI)",
+            "materials": "Raw sheep wool",
+            "description": "Intricately knitted winter wear made in the Lahaul-Spiti region using ancient 4-needle techniques.",
+            "image": "https://www.gitagged.com/wp-content/uploads/2022/03/Lahauli-Hand-Knitted-Socks.jpg"
+        },
+        {
+            "name": "Chamba Chappal (GI)",
+            "materials": "Leather, silk/zari threads",
+            "description": "Traditional handcrafted leather footwear embellished with vivid silk thread embroidery.",
+            "image": "https://madeinhimachal.com/wp-content/uploads/2025/05/71ACxWL0p4L._SY695_-Photoroom.webp"
+        }
+    ],
+    "Punjab": [
+        {
+            "name": "Phulkari (GI)",
+            "materials": "Khaddar (cotton canvas), Pat (floss silk thread)",
+            "description": "Bright, floral-patterned embroidery done from the reverse side of the fabric.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/7/71/Contemporary_Phulkari_design.jpg"
+        },
+        {
+            "name": "Thathera Metal Craft",
+            "materials": "Brass, Copper, Kansa",
+            "description": "Handcrafted brass and copper utensils created by hammering metal into shape (UNESCO recognized).",
+            "image": "https://cdn.shopify.com/s/files/1/0503/5442/1920/files/BRONZE_20.png"
+        },
+        {
+            "name": "Punjabi Jutti",
+            "materials": "Leather, gold/silver threads, beads",
+            "description": "Flat, embroidered leather slip-on footwear featuring no left-right distinction until broken in.",
+            "image": "http://coralhaze.com/cdn/shop/articles/trendy-punjabi-jutti-the-ultimate-accessory-for-ethnic-elegance-199339.webp"
+        },
+        {
+            "name": "Panja Durries",
+            "materials": "Cotton, wool",
+            "description": "Hand-loomed thick floor rugs made using a metallic claw (Panja) to beat the weft tightly.",
+            "image": "https://cdn.vastrashilpakosh.in//vol2/Cultural_AIP_Record/nift_del/cfp/nift_del-106-cfp/nift_del-106-cfp_main/Image/JPEG/nift_del-106-cfp-10p.jpeg"
+        }
+    ],
+    "Uttarakhand": [
+        {
+            "name": "Aipan Art (GI)",
+            "materials": "Geru (red ochre), rice paste (biswar)",
+            "description": "Traditional ritualistic floor and wall painting of the Kumaon region featuring geometric deity motifs.",
+            "image": "http://www.memeraki.com/cdn/shop/files/Profound-Beauty-Aipan-Artistry-by-Ruchi-Nainwal-1_800x.jpg"
+        },
+        {
+            "name": "Ringal Craft (GI)",
+            "materials": "Dwarf bamboo (Ringal)",
+            "description": "Highly durable, woven bamboo items including mats, baskets, and agricultural tools made by hill artisans.",
+            "image": "https://www.voicesofruralindia.org/wp-content/uploads/2024/12/Suresh1_15.png"
+        },
+        {
+            "name": "Tamta Copperware (GI)",
+            "materials": "Copper",
+            "description": "Hand-beaten copper vessels and religious artifacts historically crafted by the Tamta community of Almora.",
+            "image": "https://lh3.googleusercontent.com/ci/AL18g_TKtY5iT1xEs9NYYsB0ON19SaCR0Gzc1anPcPXrSwxUQbU8JgCpep-gLyD483YqGT68hbm6=s1200"
+        },
+        {
+            "name": "Thulma Blankets (GI)",
+            "materials": "Local sheep wool",
+            "description": "Exceptionally thick, hand-woven, and brushed fuzzy blankets native to high-altitude regions.",
+            "image": "https://www.indiainch.org/wp-content/uploads/2019/06/IMG_2996-e1559893945402.jpg"
+        },
+        {
+            "name": "Bhotiya Dann (GI)",
+            "materials": "Wool",
+            "description": "Traditional hand-knotted woolen carpets created by the Bhotiya tribe, characterized by thick pile.",
+            "image": "https://asiainch.org/wp-content/uploads/2023/02/bhotia-1.png"
+        },
+        {
+            "name": "Himalayan Nettle Craft",
+            "materials": "Nettle plant fiber (Bichhu Buti)",
+            "description": "Eco-friendly textiles, bags, and ropes woven from wild stinging nettle for exceptional strength.",
+            "image": "https://www.primitivetribalcraft.com/cdn/shop/files/il_1140xN.2192114328_u594.jpg"
+        },
+        {
+            "name": "Likhai Wood Carving (GI)",
+            "materials": "Deodar or Walnut wood",
+            "description": "Ornate wood carving traditionally used on the window frames and doorways of Kumaoni architecture.",
+            "image": "https://media.assettype.com/homegrown%2F2025-10-16%2F5n02wjef%2FLikhaiUttarakhand.jpg"
+        }
+    ],
+    "Haryana": [
+        {
+            "name": "Sarkanda Craft",
+            "materials": "Munj grass, Sarkanda reeds",
+            "description": "Golden-colored woven furniture (like Pidhas/stools) and baskets created from wild river grass.",
+            "image": "https://www.indiainch.org/wp-content/uploads/2018/10/IMG-20190829-WA0002.jpg"
+        },
+        {
+            "name": "Surahi Pottery",
+            "materials": "Local clay",
+            "description": "Thin-necked, unglazed earthen water pitchers from Jhajjar, known for rapid water-cooling properties.",
+            "image": "https://cdn.shopify.com/s/files/1/0752/8022/0377/files/unnamed_61.jpg"
+        },
+        {
+            "name": "Tilla Jutti (Rewari)",
+            "materials": "Leather, Zari (Tilla) thread",
+            "description": "Embellished slip-on leather footwear known for heavy gold/silver wire embroidery on the toe.",
+            "image": "http://www.cilwanastudio.com/cdn/shop/files/TurquiseTilla2.jpg"
+        }
+    ],
+    "Delhi": [
+        {
+            "name": "Blue Pottery",
+            "materials": "Quartz, raw glaze",
+            "description": "Features a deeper indigo hue with a robust design language, distinct from Jaipur's variant.",
+            "image": "https://theindiacrafthouse.com/cdn/shop/products/Delhi_20Blue_20Art_20Pottery_20Curio_20__20Jug_20Vase_20-_20ADBP03_201.jpg"
+        },
+        {
+            "name": "Zardozi Embroidery",
+            "materials": "Velvet/Silk base, metal wire",
+            "description": "Heavy, opulent 3D metallic embroidery originally patronized by the Mughals, centered in Old Delhi.",
+            "image": "https://asiainch.org/wp-content/uploads/2014/06/4.png"
+        },
+        {
+            "name": "Meenakari",
+            "materials": "Silver, Copper, Enamel dust",
+            "description": "The intricate art of decorating metal surfaces with vibrant, fused glass enamel.",
+            "image": "https://cdn.shopify.com/s/files/1/0584/6627/1429/files/Meenakari-Jewellery.jpg"
+        }
+    ],
+    "Uttar Pradesh": [
+        {
+            "name": "Varanasi Brocade & Sarees (GI)",
+            "materials": "Silk, Gold and Silver Zari",
+            "description": "Masterpiece handloom sarees woven with highly detailed metallic floral/paisley brocades.",
+            "image": "https://zaribanaras.com/cdn/shop/products/BF-183E.jpg"
+        },
+        {
+            "name": "Lucknow Chikan Craft (GI)",
+            "materials": "Cotton/Muslin, white thread",
+            "description": "A delicate, shadow-work embroidery technique consisting of 36 distinct stitching styles.",
+            "image": "https://d2hijos0r2m9rf.cloudfront.net/uploads/blog_image/blog_LucknowiChikankari-theCraftsmanshipBehindIndiasIconic-4145.jpg"
+        },
+        {
+            "name": "Moradabad Metal Craft (GI)",
+            "materials": "Brass",
+            "description": "Highly polished and engraved brassware, ranging from decorative trays to utilitarian pots.",
+            "image": "https://s7ap1.scene7.com/is/image/incredibleindia/Moradabad-Metal-1-craft-hero"
+        },
+        {
+            "name": "Saharanpur Wood Craft (GI)",
+            "materials": "Sheesham (Rosewood)",
+            "description": "Intricately carved wooden screens, furniture, and boxes known for brass inlay (Tarkashi).",
+            "image": "https://haathkabana.com/wp-content/webp-express/webp-images/uploads/elementor/thumbs/S2-q7be1bhb95v9t0bvnedzaorltu4ge4li32erxcyqnk.jpg.webp"
+        },
+        {
+            "name": "Bhadohi Handmade Carpet (GI)",
+            "materials": "Wool, silk, cotton",
+            "description": "The largest hand-knotted carpet weaving belt in South Asia, producing dense, Persian-style rugs.",
+            "image": "https://farookht.com/cdn/shop/articles/Carpet-O.jpg"
+        },
+        {
+            "name": "Nizamabad Black Pottery (GI)",
+            "materials": "Local clay, mustard oil, silver",
+            "description": "Striking black baked clay pottery with silver-colored patterns rubbed into incised grooves.",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/3/34/Nizamabad_black_clay_pottery.png"
+        },
+        {
+            "name": "Firozabad Glass Craft (GI)",
+            "materials": "Silica sand, soda ash",
+            "description": "India's epicenter for glassmaking, renowned for handcrafted glass bangles and decorative glassware.",
+            "image": "https://www.gitagged.com/wp-content/uploads/2022/12/FGC-001-WHITEBLUE-LOVEBIRDS-1.jpg"
+        },
+        {
+            "name": "Khurja Pottery (GI)",
+            "materials": "Ceramic, glaze",
+            "description": "Colorful, hand-painted ceramic stoneware and tableware utilizing a double-firing process.",
+            "image": "https://img.esaras.in/catalog/product/cache/ad98b6f2671193d583ca1e385c36654e/e/s/es02246_1.png"
+        },
+        {
+            "name": "Gorakhpur Terracotta (GI)",
+            "materials": "Specialized pond clay",
+            "description": "Intricately ornamented, unglazed terracotta animal figurines, most notably towering clay horses.",
+            "image": "http://odopup.in/images/gorakhpur.jpg"
+        },
+        {
+            "name": "Agra Leather Footwear (GI)",
+            "materials": "Treated leather",
+            "description": "A massive hub of skilled leather artisans handcrafting formal shoes, juttis, and leather accessories.",
+            "image": "https://images.jdmagicbox.com/quickquotes/images_main/designer-men-leather-shoe-2100818942-p59hb25d.jpg"
+        },
+        {
+            "name": "Kalpi Handmade Paper (GI)",
+            "materials": "Cotton rags, waste paper",
+            "description": "Traditional, chemical-free, wood-free paper making dating back centuries.",
+            "image": "https://5.imimg.com/data5/SELLER/Default/2022/8/QO/WV/IX/24651371/new-product-500x500.jpeg"
+        },
+        {
+            "name": "Banaras Metal Repousse (GI)",
+            "materials": "Copper, Brass",
+            "description": "3D embossed metalwork achieved by hammering from the reverse side, used in religious objects.",
+            "image": "https://tilfi.com/cdn/shop/files/THTABW10006UBanarasGhatMetalRepousseWallArt2_2048x.jpg"
+        },
+        {
+            "name": "Farrukhabad Prints (GI)",
+            "materials": "Cotton fabric, wooden blocks",
+            "description": "Traditional hand-block printing utilizing classical 'Tree of Life' motifs and dense geometrical patterns.",
+            "image": "https://www.ripaonline.com/wp-content/uploads/2025/10/Farrukhabad-Prints-scaled.jpg"
+        },
+        {
+            "name": "Mirzapur Handmade Durrie (GI)",
+            "materials": "Cotton and Wool yarn",
+            "description": "Tightly woven, reversible flat-weave carpets favored for rugged durability and minimalist tribal designs.",
+            "image": "https://sahasa.in/wp-content/uploads/2020/12/mirzapur-handmade-dari-2-e1608614055415.jpg"
+        }
+    ]
+}

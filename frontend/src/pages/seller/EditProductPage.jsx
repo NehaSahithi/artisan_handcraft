@@ -42,8 +42,8 @@ export default function EditProductPage() {
       try {
         // 1. Verify profile exists and is verified
         const profile = await getMyProfile();
-        if (!profile || !profile.isVerified || profile.kyc?.status !== 'verified') {
-          toast.error("Verification Required: Access locked until KYC is approved.");
+        if (!profile) {
+          toast.error("Verification Required: Please complete your studio profile first.");
           navigate('/seller/dashboard');
           return;
         }
