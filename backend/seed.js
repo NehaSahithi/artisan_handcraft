@@ -1,11 +1,9 @@
+import './loadEnv.js';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import User from './src/models/User.js';
 import ArtisanProfile from './src/models/ArtisanProfile.js';
 import Product from './src/models/Product.js';
 
-// Load environment variables
-dotenv.config();
 
 const connectDB = async () => {
   try {
@@ -310,7 +308,7 @@ const importData = async () => {
       location: {
         state: 'Odisha'
       },
-      craftCategories: ['Madhubani', 'Painting & Art'],
+      craftCategories: ['Painting & Art'],
       yearsOfExperience: 25,
       kyc: {
         status: 'verified'
