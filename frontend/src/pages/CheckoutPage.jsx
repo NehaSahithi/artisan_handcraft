@@ -98,7 +98,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
         
         toast.success("Mock Acquisition Secured!", { id: 'mock-pay' })
         if (clearCart) clearCart()
-        navigate('/buyer/dashboard')
+        window.location.href = '/buyer/dashboard'
         return
       }
 
@@ -131,7 +131,7 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
 
             toast.success("Acquisition Secured Successfully!", { id: 'verify' })
             if (clearCart) clearCart()
-            navigate('/buyer/dashboard')
+            window.location.href = '/buyer/dashboard'
           } catch (err) {
             toast.error(err.response?.data?.message || "Payment verification failed.", { id: 'verify' })
           }
