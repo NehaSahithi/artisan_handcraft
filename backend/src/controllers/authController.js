@@ -66,11 +66,9 @@ export const register = async (req, res) => {
   await user.save({ validateBeforeSave: false });
 
   // Send verification email asynchronously (failure shouldn't block signup)
-  try {
-    await sendVerificationEmail(user, verificationToken);
-  } catch (err) {
+  sendVerificationEmail(user, verificationToken).catch((err) => {
     console.error(`Verification email failed to send: ${err.message}`);
-  }
+  });
 
   sendTokenCookie(user, 201, res, 'Registration successful. A verification link has been sent to your email.');
 };
