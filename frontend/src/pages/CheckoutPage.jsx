@@ -69,7 +69,7 @@ export default function CheckoutPage() {
 const handlePayment = async (e) => {
     e.preventDefault()
     
-    if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.pincode || !shippingAddress.phone) {
+    if (!shippingAddress.fullName || !shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode || !shippingAddress.phone) {
       return toast.error("Please complete the destination manifest.")
     }
 
@@ -153,7 +153,8 @@ const apiResponse = await apiClient.post('/orders', { shippingAddress })
 
     } catch (error) {
       console.error(error)
-      toast.error(error.response?.data?.message || error.message || "Failed to initialize secure transaction.")
+      const errorMsg = error.response?.data?.errors?.[0]?.message || error.response?.data?.message || error.message || "Failed to initialize secure transaction."
+      toast.error(errorMsg)
     } finally {
       setLoading(false)
     }
